@@ -883,6 +883,121 @@ details.resumo summary i { transition: transform 0.15s; }
 .modal-body li { margin-bottom: 0.2rem; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1.4rem; }
 
+/* ---------- Empréstimos ---------- */
+.alert-warning { background: var(--warning-bg); color: var(--warning); border: 1px solid var(--warning-border); margin-bottom: 1rem; }
+
+.equip-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 0.75rem;
+}
+.equip-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    text-align: left;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--mark-ok);
+    border-radius: var(--radius);
+    background: var(--surface);
+    font: inherit;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.15s var(--ease);
+}
+.equip-card:hover { border-color: var(--brand-200); box-shadow: var(--shadow-sm); }
+.equip-card.is-empty { border-left-color: var(--mark-empty); }
+.equip-nome { font-weight: 700; font-size: 0.9rem; }
+.equip-num { color: var(--text-2); font-size: 0.85rem; }
+.equip-num strong { font-size: 1.35rem; color: var(--text); margin-right: 0.15rem; }
+.equip-sub { font-size: 0.75rem; color: var(--text-3); }
+
+tr.clicavel { cursor: pointer; }
+td.equip-badges { min-width: 180px; }
+td.equip-badges .badge { margin: 0.1rem 0.15rem 0.1rem 0; }
+.alerta-contato { color: var(--warning); font-size: 1rem; vertical-align: middle; margin-left: 0.2rem; }
+.pessoa-aviso { color: var(--info); font-weight: 600; margin: -0.25rem 0 1rem; }
+.pessoa-aviso i { vertical-align: -2px; }
+.card-sub { font-size: 0.8rem; font-weight: 500; color: var(--text-3); margin-left: 0.35rem; }
+
+/* Janelas: detalhe por baixo, formulário no meio, confirmação por cima */
+#modal-detalhe { z-index: 2400; }
+#modal-acao { z-index: 2450; }
+.modal-largo, .modal-form.largo { max-width: 640px; max-height: calc(100vh - 2rem); overflow-y: auto; }
+.modal-form .field { margin-bottom: 0.8rem; }
+.modal-form .modal-body { margin-bottom: 1rem; }
+.modal-form .form-grid { margin-bottom: 0; }
+.detalhe-head { display: flex; align-items: flex-start; gap: 0.85rem; margin-bottom: 1rem; }
+.detalhe-head .modal-icon { margin: 0; flex-shrink: 0; }
+.detalhe-head > div:nth-child(2) { flex: 1; min-width: 0; }
+.detalhe-head h3 { margin-bottom: 0.3rem; overflow-wrap: anywhere; }
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 0.6rem 1rem;
+    margin: 0 0 0.9rem;
+}
+.info-grid dt { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-3); }
+.info-grid dd { font-size: 0.9rem; color: var(--text); overflow-wrap: anywhere; }
+.info-grid a { color: var(--brand-600); font-weight: 600; }
+.detalhe-obs {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0.6rem 0.75rem;
+    font-size: 0.85rem;
+    color: var(--text-2);
+    margin-bottom: 0.6rem;
+}
+.detalhe-sub { font-size: 0.85rem; font-weight: 700; margin: 1.1rem 0 0.5rem; display: flex; align-items: center; gap: 0.35rem; }
+.feed.contatos { max-height: 240px; overflow-y: auto; }
+.feed.contatos .feed-sub { white-space: normal; overflow: visible; text-overflow: clip; }
+.detalhe-acoes { flex-wrap: wrap; align-items: center; }
+.detalhe-acoes .espaco { flex: 1; }
+.perigo-txt { color: var(--danger); }
+.perigo-txt:hover:not(:disabled) { background: var(--danger-bg); }
+.dev-itens { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0.9rem; }
+.dev-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.55rem 0.7rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+}
+.dev-item select { max-width: 190px; }
+
+@media (max-width: 560px) {
+    /* Lista de empréstimos vira cartões */
+    #emp-lista-card .table-wrap { border: none; overflow: visible; }
+    #emp-lista-card thead { display: none; }
+    #emp-lista-card table, #emp-lista-card tbody, #emp-lista-card td { display: block; width: 100%; }
+    #emp-lista-card tr.clicavel {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 0.3rem 0.5rem;
+        padding: 0.75rem 0.85rem;
+        margin-bottom: 0.6rem;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+    }
+    #emp-lista-card tr.clicavel td { padding: 0; border: none; min-width: 0; }
+    #emp-lista-card tr.clicavel td:nth-child(1) { grid-column: 1; grid-row: 1; font-size: 0.75rem; color: var(--text-3); }
+    #emp-lista-card tr.clicavel td:nth-child(2) { grid-column: 1 / -1; grid-row: 2; }
+    #emp-lista-card tr.clicavel td:nth-child(3) { grid-column: 1 / -1; grid-row: 3; font-size: 0.8rem; color: var(--text-2); }
+    #emp-lista-card tr.clicavel td:nth-child(4) { grid-column: 1 / -1; grid-row: 4; }
+    #emp-lista-card tr.clicavel td:nth-child(5) { grid-column: 1 / -1; grid-row: 5; font-size: 0.8rem; }
+    #emp-lista-card tr.clicavel td:nth-child(6) { grid-column: 2; grid-row: 1; width: auto; }
+    #emp-lista-card tr.clicavel td:nth-child(6) .icon-btn { width: 28px; height: 28px; }
+    .equip-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.6rem; }
+    .detalhe-acoes .btn { flex: 1; }
+    .detalhe-acoes .espaco { display: none; }
+    .dev-item { flex-direction: column; align-items: stretch; }
+    .dev-item select { max-width: none; }
+}
+
 /* Ações só para Administrador/Gestor */
 body:not(.is-gestor) .so-gestor { display: none !important; }
 
@@ -945,7 +1060,7 @@ body:not(.is-gestor) .so-gestor { display: none !important; }
 /* ---------- Impressão ---------- */
 @media print {
     body { background: #fff; }
-    .sidebar, .page-actions, .filters, .toasts, .load-more, .so-gestor, #aviso-erro { display: none !important; }
+    .sidebar, .page-actions, .filters, .toasts, .load-more, .so-gestor, #aviso-erro, .modal-overlay { display: none !important; }
     .main { margin: 0; padding: 0; max-width: none; }
     .card { box-shadow: none; border: none; padding: 0; }
     .view { display: none !important; }

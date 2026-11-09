@@ -6,7 +6,7 @@
 //
 // Banco de dados — um estoque único para todas as áreas do portal:
 //   estoque_itens/{id}          { nome, categoria, unidade, estoqueMinimo, ativo,
-//                                 areas: ['Fundo Social', ...], criadoEm }
+//                                 areas: ['Fundo Social', ...], emprestimo, criadoEm }
 //   estoque_movimentacoes/{id}  { tipo: ENTRADA | SAIDA | AJUSTE, area, itemId, itemNome,
 //                                 unidade, qtd, data (AAAA-MM-DD), origemDestino, motivo,
 //                                 obs, contado, lote, usuarioId, usuarioNome, criadoEm }
@@ -19,6 +19,8 @@
 // em uma tela baixa o saldo em todas. "area" guarda qual tela fez o lançamento e
 // "lote" agrupa os itens lançados juntos num mesmo formulário.
 // Documentos criados antes desses campos existirem contam como do Fundo Social.
+//
+// Empréstimos de equipamentos ficam em emprestimos.js (carregado depois deste).
 
 const AREA = 'Fundo Social';
 const AREA_LEGADA = 'Fundo Social';
@@ -43,6 +45,8 @@ const ITENS_PADRAO = [
 ];
 
 const MOTIVOS_SAIDA = ['Doação', 'Ação social', 'Transferência', 'Perda ou vencimento', 'Outro'];
+// Lançados pela tela de Empréstimos; aparecem no filtro, mas não no formulário de saída
+const MOTIVOS_FILTRO = [...MOTIVOS_SAIDA, 'Empréstimo', 'Devolução de empréstimo'];
 
 const TIPOS = {
     ENTRADA: { label: 'Entrada', badge: 'badge-success', icone: 'ph-arrow-down-left', classeQtd: 'qty-pos' },
@@ -257,6 +261,7 @@ initAuth(() => {
     adicionarLinha('ent');
     adicionarLinha('sai');
     ouvirDados();
+    if (typeof iniciarEmprestimos === 'function') iniciarEmprestimos();
 });
 
 function ouvirDados() {
@@ -325,6 +330,7 @@ function renderTudo() {
     renderInventario();
     renderItens();
     renderSugestoes();
+    if (typeof renderEmprestimos === 'function') renderEmprestimos();
 }
 
 // ----------------------------------------------------
@@ -451,7 +457,7 @@ function renderOpcoesFiltro() {
     const itensFiltro = itens.filter(i => areasDoItem(i).includes(AREA));
     preencher('f-item', itensFiltro.map(i => [i.id, i.nome + (i.ativo === false ? ' (inativo)' : '')]), 'Todos os itens');
     preencher('f-categoria', categoriasDe(itensFiltro).map(c => [c, c]), 'Todas');
-    preencher('f-motivo', MOTIVOS_SAIDA.map(m => [m, m]), 'Todos');
+    preencher('f-motivo', MOTIVOS_FILTRO.map(m => [m, m]), 'Todos');
     const usuarios = new Map(movs.map(m => [m.usuarioId, m.usuarioNome]));
     preencher('f-usuario', [...usuarios].filter(([id]) => id).sort((a, b) => (a[1] || '').localeCompare(b[1] || '', 'pt-BR')), 'Todos');
     const areas = [...new Set(movs.map(areaDaMov))].sort();
@@ -1061,7 +1067,7 @@ function renderItens() {
         const saldo = saldos[item.id] || 0;
         return `
             <tr class="${ativo ? '' : 'inativo'}">
-                <td><strong>${esc(item.nome)}</strong><span class="cell-sub">${esc(item.unidade)}</span></td>
+                <td><strong>${esc(item.nome)}</strong><span class="cell-sub">${esc(item.unidade)}${item.emprestimo ? ' · <i class="ph ph-wheelchair"></i> empréstimo' : ''}</span></td>
                 <td>${item.categoria ? `<span class="chip">${esc(item.categoria)}</span>` : '-'}</td>
                 <td>${areasDoItem(item).map(a => `<span class="chip muted">${esc(a)}</span>`).join(' ')}</td>
                 <td class="right num">${formatarQtd(item.estoqueMinimo)}</td>
@@ -1086,6 +1092,7 @@ function editarItem(id) {
     document.getElementById('item-categoria').value = item.categoria || '';
     document.getElementById('item-unidade').value = item.unidade || '';
     document.getElementById('item-minimo').value = item.estoqueMinimo || 0;
+    document.getElementById('item-emprestimo').checked = item.emprestimo === true;
     renderCheckboxAreas(areasDoItem(item));
     document.getElementById('item-form-titulo').innerHTML = `<i class="ph ph-pencil-simple"></i> Editar: ${esc(item.nome)}`;
     document.getElementById('item-cancelar').style.display = '';
@@ -1108,7 +1115,8 @@ document.getElementById('form-item').addEventListener('submit', async (e) => {
         nome: document.getElementById('item-nome').value.trim(),
         categoria: document.getElementById('item-categoria').value.trim(),
         unidade: document.getElementById('item-unidade').value.trim(),
-        estoqueMinimo: Math.max(0, parseInt(document.getElementById('item-minimo').value, 10) || 0)
+        estoqueMinimo: Math.max(0, parseInt(document.getElementById('item-minimo').value, 10) || 0),
+        emprestimo: document.getElementById('item-emprestimo').checked
     };
     if (itens.some(i => i.id !== id && normalizar(i.nome) === normalizar(dados.nome))) {
         toast(`Já existe um item chamado "${dados.nome}".`, 'erro');

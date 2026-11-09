@@ -146,6 +146,20 @@ service cloud.firestore {
       allow delete: if isAdminOrGestor();
     }
 
+    // ---------- Empréstimos de equipamentos (Fundo Social) ----------
+    // Cadeiras de rodas, de banho, muletas etc. Quem tem acesso ao Fundo
+    // Social registra empréstimo, devolução e contato; o registro fica no
+    // nome de quem criou (não muda depois). Só Admin/Gestor exclui. As
+    // baixas e devoluções no estoque ficam em estoque_movimentacoes.
+    match /emprestimos/{empId} {
+      allow read: if hasOrganAccess('Fundo Social') && isModuleOn('Fundo Social');
+      allow create: if hasOrganAccess('Fundo Social') && isModuleOn('Fundo Social') &&
+        request.resource.data.usuarioId == request.auth.uid;
+      allow update: if hasOrganAccess('Fundo Social') && isModuleOn('Fundo Social') &&
+        request.resource.data.usuarioId == resource.data.usuarioId;
+      allow delete: if isAdminOrGestor();
+    }
+
     // ---------- EcoBazar (van itinerante) ----------
     // Paradas da van (bairro onde está): só Admin/Gestor abre, edita e encerra.
     match /ecobazar_paradas/{paradaId} {

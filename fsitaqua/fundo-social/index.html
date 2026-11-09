@@ -6,7 +6,7 @@
     <title>Estoque - Fundo Social</title>
     <link rel="icon" type="image/png" href="../head.png">
     <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
-    <link rel="stylesheet" href="style.css?v=3">
+    <link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
 
@@ -35,6 +35,10 @@
             <a onclick="switchTab('entradas')" id="tab-entradas" class="nav-item"><i class="ph ph-arrow-circle-down"></i> Entrada</a>
             <a onclick="switchTab('saidas')" id="tab-saidas" class="nav-item"><i class="ph ph-arrow-circle-up"></i> Saída</a>
             <a onclick="switchTab('inventario')" id="tab-inventario" class="nav-item"><i class="ph ph-clipboard-text"></i> Inventário</a>
+
+            <span class="nav-label">Empréstimos</span>
+            <a onclick="switchTab('emprestimos')" id="tab-emprestimos" class="nav-item"><i class="ph ph-wheelchair"></i> Empréstimos</a>
+            <a onclick="switchTab('novo-emprestimo')" id="tab-novo-emprestimo" class="nav-item"><i class="ph ph-hand-arrow-up"></i> Novo empréstimo</a>
 
             <!-- Cadastro de itens: só Administrador/Gestor -->
             <span class="nav-label so-gestor">Cadastros</span>
@@ -196,7 +200,7 @@
                         <input type="text" id="f-local" class="form-control sm" list="lista-locais" placeholder="Qualquer" oninput="aplicarFiltros()">
                     </div>
                     <div class="field">
-                        <label for="f-motivo">Motivo da saída</label>
+                        <label for="f-motivo">Motivo</label>
                         <select id="f-motivo" class="form-control sm" onchange="aplicarFiltros()"></select>
                     </div>
                     <div class="field">
@@ -396,6 +400,169 @@
             </form>
         </section>
 
+        <!-- ================= EMPRÉSTIMOS ================= -->
+        <section id="view-emprestimos" class="view">
+            <div class="page-head">
+                <div>
+                    <h1>Empréstimos</h1>
+                    <p>Cadeiras de rodas, de banho, muletas e outros equipamentos emprestados aos munícipes.</p>
+                </div>
+                <div class="page-actions">
+                    <button class="btn btn-secondary so-gestor" onclick="escolherPlanilhaEmprestimos()"><i class="ph ph-upload-simple"></i> Importar planilha</button>
+                    <button class="btn btn-secondary" onclick="exportarEmprestimos()"><i class="ph ph-microsoft-excel-logo"></i> Exportar Excel</button>
+                    <button class="btn btn-primary" onclick="switchTab('novo-emprestimo')"><i class="ph ph-plus-circle"></i> Novo empréstimo</button>
+                </div>
+            </div>
+            <input type="file" id="emp-arquivo" accept=".xlsx" hidden onchange="importarPlanilhaEmprestimos(this)">
+
+            <div class="kpi-grid">
+                <div class="kpi">
+                    <div class="kpi-icon warning"><i class="ph ph-hourglass-medium"></i></div>
+                    <div>
+                        <div class="kpi-label">Em aberto</div>
+                        <div class="kpi-value" id="emp-kpi-abertos">0</div>
+                        <div class="kpi-hint" id="emp-kpi-abertos-hint"></div>
+                    </div>
+                </div>
+                <div class="kpi">
+                    <div class="kpi-icon"><i class="ph ph-wheelchair"></i></div>
+                    <div>
+                        <div class="kpi-label">Equipamentos emprestados</div>
+                        <div class="kpi-value" id="emp-kpi-fora">0</div>
+                        <div class="kpi-hint">fora do galpão</div>
+                    </div>
+                </div>
+                <div class="kpi">
+                    <div class="kpi-icon success"><i class="ph ph-warehouse"></i></div>
+                    <div>
+                        <div class="kpi-label">Disponíveis</div>
+                        <div class="kpi-value" id="emp-kpi-disponiveis">0</div>
+                        <div class="kpi-hint">no galpão, pelo estoque</div>
+                    </div>
+                </div>
+                <div class="kpi">
+                    <div class="kpi-icon warning" id="emp-kpi-contato-icon"><i class="ph ph-phone-x"></i></div>
+                    <div>
+                        <div class="kpi-label">Sem contato há 90 dias</div>
+                        <div class="kpi-value" id="emp-kpi-contato">0</div>
+                        <div class="kpi-hint">em aberto, para ligar</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-head">
+                    <h2><i class="ph ph-stack"></i> Equipamentos</h2>
+                </div>
+                <div class="equip-grid" id="emp-equipamentos"></div>
+            </div>
+
+            <div class="card" id="emp-lista-card">
+                <div class="card-head">
+                    <h2><i class="ph ph-list-bullets"></i> Quem está com o quê <span class="card-sub" id="emp-contagem"></span></h2>
+                    <button class="btn btn-ghost btn-sm" onclick="limparFiltrosEmprestimo()"><i class="ph ph-x-circle"></i> Limpar filtros</button>
+                </div>
+                <div class="filter-row">
+                    <div class="segmented" id="emp-f-situacao">
+                        <button data-situacao="aberto" class="active" onclick="definirSituacaoEmprestimo('aberto')">Em aberto</button>
+                        <button data-situacao="encerrado" onclick="definirSituacaoEmprestimo('encerrado')">Encerrados</button>
+                        <button data-situacao="" onclick="definirSituacaoEmprestimo('')">Todos</button>
+                    </div>
+                    <label class="switch"><input type="checkbox" id="emp-f-contato" onchange="aplicarFiltrosEmprestimo()"> Só sem contato há 90 dias</label>
+                </div>
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="emp-f-busca">Buscar</label>
+                        <input type="search" id="emp-f-busca" class="form-control sm" placeholder="Nome, telefone, endereço, bairro..." oninput="aplicarFiltrosEmprestimo()">
+                    </div>
+                    <div class="field">
+                        <label for="emp-f-item">Equipamento</label>
+                        <select id="emp-f-item" class="form-control sm" onchange="aplicarFiltrosEmprestimo()"></select>
+                    </div>
+                    <div class="field">
+                        <label for="emp-f-ano">Ano da retirada</label>
+                        <select id="emp-f-ano" class="form-control sm" onchange="aplicarFiltrosEmprestimo()"></select>
+                    </div>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Retirada</th>
+                                <th>Munícipe</th>
+                                <th>Bairro / endereço</th>
+                                <th>Equipamentos</th>
+                                <th>Último contato</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-emprestimos"></tbody>
+                    </table>
+                </div>
+                <div class="load-more" id="emp-mais"></div>
+            </div>
+        </section>
+
+        <!-- ================= NOVO EMPRÉSTIMO ================= -->
+        <section id="view-novo-emprestimo" class="view">
+            <div class="page-head">
+                <div>
+                    <h1>Novo empréstimo</h1>
+                    <p>O equipamento sai do estoque do galpão e volta quando for devolvido.</p>
+                </div>
+            </div>
+
+            <div class="alert alert-warning show" id="emp-sem-equip" style="display: none;">
+                <i class="ph ph-warning"></i>
+                <span>Nenhum equipamento cadastrado para empréstimo. Um gestor precisa importar a planilha ou marcar "Pode ser emprestado" no item.</span>
+            </div>
+
+            <form id="form-emprestimo" class="card" autocomplete="off">
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="emp-data">Data da retirada</label>
+                        <input type="date" id="emp-data" class="form-control" required>
+                    </div>
+                    <div class="field">
+                        <label for="emp-nome">Nome do munícipe</label>
+                        <input type="text" id="emp-nome" class="form-control" list="lista-emp-nomes" required onchange="preencherPessoaConhecida()">
+                    </div>
+                    <div class="field">
+                        <label for="emp-telefone">Telefone</label>
+                        <input type="tel" id="emp-telefone" class="form-control" inputmode="tel" placeholder="(11) 91234-5678">
+                    </div>
+                    <div class="field">
+                        <label for="emp-endereco">Endereço</label>
+                        <input type="text" id="emp-endereco" class="form-control" placeholder="Rua, número, complemento">
+                    </div>
+                    <div class="field">
+                        <label for="emp-bairro">Bairro</label>
+                        <input type="text" id="emp-bairro" class="form-control" list="lista-emp-bairros">
+                    </div>
+                    <div class="field">
+                        <label for="emp-responsavel">Responsável (opcional)</label>
+                        <input type="text" id="emp-responsavel" class="form-control" placeholder="Quem retirou ou encaminhou">
+                    </div>
+                </div>
+                <div class="field" style="margin-bottom: 1rem;">
+                    <label for="emp-obs">Observação (opcional)</label>
+                    <input type="text" id="emp-obs" class="form-control" placeholder="Ex: telefone é de um familiar">
+                </div>
+                <p class="hint pessoa-aviso" id="emp-pessoa-aviso" style="display: none;"></p>
+
+                <div class="lines-box">
+                    <div class="lines-head"><span>Equipamento</span><span>Quantidade</span><span></span></div>
+                    <div id="emp-linhas"></div>
+                    <button type="button" class="btn btn-ghost btn-sm" onclick="adicionarLinhaEmprestimo()"><i class="ph ph-plus-circle"></i> Adicionar outro equipamento</button>
+                </div>
+
+                <div class="form-footer">
+                    <p class="hint" id="emp-resumo"></p>
+                    <button type="submit" class="btn btn-primary"><i class="ph ph-check-circle"></i> Registrar empréstimo</button>
+                </div>
+            </form>
+        </section>
+
         <!-- ================= ITENS ================= -->
         <section id="view-itens" class="view so-gestor">
             <div class="page-head">
@@ -441,6 +608,9 @@
                     <span class="field-label">Aparece nas áreas</span>
                     <div class="checks" id="item-areas"></div>
                 </div>
+                <div class="field" style="margin-bottom: 1rem;">
+                    <label class="check"><input type="checkbox" id="item-emprestimo"> Pode ser emprestado (aparece em Empréstimos, ex.: cadeira de rodas)</label>
+                </div>
                 <div class="form-footer">
                     <p class="hint">O saldo é um só: uma saída lançada em qualquer área baixa o estoque em todas.</p>
                     <div class="page-actions">
@@ -479,6 +649,8 @@
     <datalist id="lista-destinos"></datalist>
     <datalist id="lista-locais"></datalist>
     <datalist id="lista-categorias"></datalist>
+    <datalist id="lista-emp-nomes"></datalist>
+    <datalist id="lista-emp-bairros"></datalist>
     <datalist id="lista-unidades">
         <option value="un"></option>
         <option value="pct"></option>
@@ -489,6 +661,41 @@
     </datalist>
 
     <div class="toasts" id="toasts"></div>
+
+    <!-- Detalhe de um empréstimo -->
+    <div class="modal-overlay" id="modal-detalhe" aria-hidden="true">
+        <div class="modal modal-largo" role="dialog" aria-modal="true" aria-labelledby="detalhe-titulo">
+            <div class="detalhe-head">
+                <div class="modal-icon"><i class="ph ph-wheelchair"></i></div>
+                <div>
+                    <h3 id="detalhe-titulo"></h3>
+                    <div id="detalhe-badge"></div>
+                </div>
+                <button type="button" class="icon-btn" title="Fechar" onclick="fecharDetalhe()"><i class="ph ph-x"></i></button>
+            </div>
+            <div id="detalhe-corpo"></div>
+            <div class="modal-actions detalhe-acoes">
+                <button type="button" class="btn btn-ghost btn-sm so-gestor perigo-txt" onclick="excluirEmprestimo()"><i class="ph ph-trash"></i> Excluir</button>
+                <span class="espaco"></span>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="abrirEdicao()"><i class="ph ph-pencil-simple"></i> Editar</button>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="abrirContato()"><i class="ph ph-phone"></i> Registrar contato</button>
+                <button type="button" class="btn btn-success btn-sm" id="detalhe-devolver" onclick="abrirDevolucao()"><i class="ph ph-arrow-u-down-left"></i> Registrar devolução</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulário genérico (devolução, contato, edição, importação) -->
+    <div class="modal-overlay" id="modal-acao" aria-hidden="true">
+        <form class="modal modal-form" id="form-acao" role="dialog" aria-modal="true" aria-labelledby="acao-titulo" autocomplete="off">
+            <div class="modal-icon" id="acao-icone"><i class="ph ph-pencil-simple"></i></div>
+            <h3 id="acao-titulo"></h3>
+            <div id="acao-corpo"></div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="fecharAcao()">Cancelar</button>
+                <button type="submit" class="btn btn-primary" id="acao-ok">Salvar</button>
+            </div>
+        </form>
+    </div>
 
     <div class="modal-overlay" id="modal" aria-hidden="true">
         <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-titulo">
@@ -508,6 +715,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
     <script src="../auth.js?v=6"></script>
-    <script src="script.js?v=5"></script>
+    <script src="script.js?v=6"></script>
+    <script src="emprestimos.js?v=1"></script>
 </body>
 </html>
