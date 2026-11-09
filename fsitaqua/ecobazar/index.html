@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoBazar - Fundo Social</title>
+    <link rel="icon" type="image/png" href="../head.png">
+    <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+    <!-- Base visual compartilhada com o Estoque do Fundo Social; style.css troca a cor e acrescenta o que é do EcoBazar -->
+    <link rel="stylesheet" href="../fundo-social/style.css?v=3">
+    <link rel="stylesheet" href="style.css?v=3">
+</head>
+<body>
+
+    <div id="loading">
+        <img src="../logo-bazar.png" alt="">
+        <div class="spinner"></div>
+        <span>Carregando EcoBazar...</span>
+    </div>
+
+    <!-- Barra lateral -->
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-logo"><img src="../logo-bazar.png" alt="EcoBazar"></div>
+            <div>
+                <strong>EcoBazar</strong>
+                <span>Van itinerante · EcoCash</span>
+            </div>
+        </div>
+        <div class="van-pill" id="van-pill"></div>
+
+        <nav class="sidebar-nav">
+            <span class="nav-label">Acompanhar</span>
+            <a onclick="switchTab('dashboard')" id="tab-dashboard" class="nav-item active"><i class="ph ph-squares-four"></i> Visão geral</a>
+            <a onclick="switchTab('historico')" id="tab-historico" class="nav-item"><i class="ph ph-list-magnifying-glass"></i> Histórico</a>
+
+            <span class="nav-label">Atendimento</span>
+            <a onclick="switchTab('municipes')" id="tab-municipes" class="nav-item"><i class="ph ph-users"></i> Munícipes</a>
+            <a onclick="switchTab('cambio')" id="tab-cambio" class="nav-item"><i class="ph ph-recycle"></i> Câmbio</a>
+            <a onclick="switchTab('loja')" id="tab-loja" class="nav-item"><i class="ph ph-shopping-bag"></i> Loja</a>
+            <a onclick="switchTab('estoque')" id="tab-estoque" class="nav-item"><i class="ph ph-package"></i> Estoque da van</a>
+
+            <!-- Cadastros: só Administrador/Gestor -->
+            <span class="nav-label so-gestor">Cadastros</span>
+            <a onclick="switchTab('paradas')" id="tab-paradas" class="nav-item so-gestor"><i class="ph ph-map-pin"></i> Paradas da van</a>
+            <a onclick="switchTab('materiais')" id="tab-materiais" class="nav-item so-gestor"><i class="ph ph-coins"></i> Materiais de troca</a>
+            <a onclick="switchTab('produtos')" id="tab-produtos" class="nav-item so-gestor"><i class="ph ph-tag"></i> Produtos da loja</a>
+        </nav>
+
+        <div class="sidebar-user">
+            <div class="avatar" id="user-avatar"></div>
+            <div class="user-meta">
+                <strong id="user-name"></strong>
+                <span id="user-role"></span>
+            </div>
+            <a class='icon-btn' href='/#dashboard' title='Voltar ao portal'><i class="ph ph-house"></i></a>
+            <button class="icon-btn" onclick="sair()" title="Sair"><i class="ph ph-sign-out"></i></button>
+        </div>
+    </aside>
+
+    <main class="main">
+
+        <div id="aviso-erro" class="alert alert-danger"><i class="ph ph-warning-circle"></i><span></span></div>
+
+        <!-- ================= VISÃO GERAL ================= -->
+        <section id="view-dashboard" class="view active">
+            <div class="page-head">
+                <div>
+                    <h1>Visão geral</h1>
+                    <p id="dash-subtitulo">Resumo da parada atual da van.</p>
+                </div>
+                <div class="page-actions">
+                    <button class="btn btn-secondary" onclick="exportarPlanilhaCompleta()"><i class="ph ph-microsoft-excel-logo"></i> Planilha completa</button>
+                    <button class="btn btn-primary" onclick="switchTab('cambio')"><i class="ph ph-recycle"></i> Novo câmbio</button>
+                </div>
+            </div>
+
+            <div class="parada-card" id="dash-parada"></div>
+
+            <div class="kpi-grid">
+                <div class="kpi">
+                    <div class="kpi-icon coin"><i class="ph ph-coins"></i></div>
+                    <div>
+                        <div class="kpi-label">EcoCash entregue</div>
+                        <div class="kpi-value" id="kpi-gerado">0</div>
+                        <div class="kpi-hint" id="kpi-gerado-hint"></div>
+                    </div>
+                </div>
+                <div class="kpi">
+                    <div class="kpi-icon"><i class="ph ph-shopping-bag"></i></div>
+                    <div>
+                        <div class="kpi-label">EcoCash trocado na loja</div>
+                        <div class="kpi-value" id="kpi-gasto">0</div>
+                        <div class="kpi-hint" id="kpi-gasto-hint"></div>
+                    </div>
+                </div>
+                <div class="kpi">
+                    <div class="kpi-icon warning"><i class="ph ph-hourglass-medium"></i></div>
+                    <div>
+                        <div class="kpi-label" id="kpi-circulando-label">Em circulação</div>
+                        <div class="kpi-value" id="kpi-circulando">0</div>
+                        <div class="kpi-hint" id="kpi-circulando-hint"></div>
+                    </div>
+                </div>
+                <div class="kpi">
+                    <div class="kpi-icon success"><i class="ph ph-users"></i></div>
+                    <div>
+                        <div class="kpi-label">Munícipes cadastrados</div>
+                        <div class="kpi-value" id="kpi-municipes">0</div>
+                        <div class="kpi-hint" id="kpi-municipes-hint"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-head">
+                        <h2><i class="ph ph-recycle"></i> Recicláveis recebidos</h2>
+                        <button class="link-btn" onclick="verHistorico({ tipo: 'CAMBIO' })">Ver câmbios <i class="ph ph-caret-right"></i></button>
+                    </div>
+                    <div class="material-totals" id="dash-materiais"></div>
+                </div>
+                <div class="card">
+                    <div class="card-head">
+                        <h2><i class="ph ph-clock-counter-clockwise"></i> Últimos atendimentos</h2>
+                        <button class="link-btn" onclick="verHistorico({})">Ver todos <i class="ph ph-caret-right"></i></button>
+                    </div>
+                    <ul class="feed" id="feed-recentes"></ul>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top: 1.25rem;">
+                <div class="card-head">
+                    <h2><i class="ph ph-storefront"></i> Prateleira da van</h2>
+                    <button class="link-btn" onclick="switchTab('estoque')">Estoque da van <i class="ph ph-caret-right"></i></button>
+                </div>
+                <div class="stock-grid" id="dash-produtos"></div>
+            </div>
+        </section>
+
+        <!-- ================= HISTÓRICO ================= -->
+        <section id="view-historico" class="view">
+            <div class="page-head">
+                <div>
+                    <h1>Histórico</h1>
+                    <p>Câmbios, trocas na loja e entradas de produto, com filtros.</p>
+                </div>
+                <div class="page-actions">
+                    <button class="btn btn-secondary" onclick="window.print()"><i class="ph ph-printer"></i> Imprimir</button>
+                    <button class="btn btn-secondary" onclick="exportarFiltro()"><i class="ph ph-funnel"></i> Exportar filtro</button>
+                    <button class="btn btn-primary" onclick="exportarPlanilhaCompleta()"><i class="ph ph-microsoft-excel-logo"></i> Planilha completa</button>
+                </div>
+            </div>
+
+            <div class="card filters">
+                <div class="card-head">
+                    <h2><i class="ph ph-funnel"></i> Filtros <span class="filter-count" id="filtro-contagem" style="display: none;"></span></h2>
+                    <button class="btn btn-ghost btn-sm" onclick="limparFiltros()"><i class="ph ph-x-circle"></i> Limpar filtros</button>
+                </div>
+
+                <div class="filter-row">
+                    <span class="field-label">Período</span>
+                    <div class="chips" id="filtro-periodos">
+                        <button class="chip-btn" data-periodo="hoje" onclick="definirPeriodo('hoje')">Hoje</button>
+                        <button class="chip-btn" data-periodo="7dias" onclick="definirPeriodo('7dias')">7 dias</button>
+                        <button class="chip-btn" data-periodo="mes" onclick="definirPeriodo('mes')">Este mês</button>
+                        <button class="chip-btn" data-periodo="mesPassado" onclick="definirPeriodo('mesPassado')">Mês passado</button>
+                        <button class="chip-btn" data-periodo="ano" onclick="definirPeriodo('ano')">Este ano</button>
+                        <button class="chip-btn active" data-periodo="tudo" onclick="definirPeriodo('tudo')">Tudo</button>
+                    </div>
+                    <div class="date-range">
+                        <input type="date" id="f-de" class="form-control sm" onchange="aplicarFiltros(true)" aria-label="De">
+                        <span class="card-sub">até</span>
+                        <input type="date" id="f-ate" class="form-control sm" onchange="aplicarFiltros(true)" aria-label="Até">
+                    </div>
+                </div>
+
+                <div class="filter-row">
+                    <span class="field-label">Tipo</span>
+                    <div class="segmented" id="filtro-tipos">
+                        <button data-tipo="" class="active" onclick="definirTipo('')">Todos</button>
+                        <button data-tipo="CAMBIO" onclick="definirTipo('CAMBIO')">Câmbio</button>
+                        <button data-tipo="LOJA" onclick="definirTipo('LOJA')">Loja</button>
+                        <button data-tipo="ESTOQUE" onclick="definirTipo('ESTOQUE')">Entrada de produto</button>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="f-parada">Parada da van</label>
+                        <select id="f-parada" class="form-control sm" onchange="aplicarFiltros()"></select>
+                    </div>
+                    <div class="field">
+                        <label for="f-item">Material ou produto</label>
+                        <select id="f-item" class="form-control sm" onchange="aplicarFiltros()"></select>
+                    </div>
+                    <div class="field">
+                        <label for="f-usuario">Lançado por</label>
+                        <select id="f-usuario" class="form-control sm" onchange="aplicarFiltros()"></select>
+                    </div>
+                    <div class="field">
+                        <label for="f-busca">Busca livre</label>
+                        <input type="search" id="f-busca" class="form-control sm" placeholder="Munícipe, observação..." oninput="aplicarFiltros()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="summary-strip" id="hist-resumo"></div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Tipo</th>
+                                <th>Itens</th>
+                                <th class="right">EcoCash</th>
+                                <th>Munícipe / origem</th>
+                                <th>Parada</th>
+                                <th>Lançado por</th>
+                                <th class="so-gestor"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-historico"></tbody>
+                    </table>
+                </div>
+                <div class="load-more" id="hist-mais"></div>
+            </div>
+        </section>
+
+        <!-- ================= MUNÍCIPES ================= -->
+        <section id="view-municipes" class="view">
+            <div class="page-head">
+                <div>
+                    <h1>Munícipes</h1>
+                    <p id="mun-subtitulo">Cadastro de quem troca recicláveis na parada atual.</p>
+                </div>
+                <div class="page-actions">
+                    <button class="btn btn-secondary" onclick="exportarPlanilhaCompleta()"><i class="ph ph-microsoft-excel-logo"></i> Planilha completa</button>
+                    <button class="btn btn-primary precisa-parada" onclick="abrirCadastroMunicipe()"><i class="ph ph-user-plus"></i> Cadastrar munícipe</button>
+                </div>
+            </div>
+
+            <div class="sem-parada" id="mun-sem-parada"></div>
+
+            <div class="card precisa-parada">
+                <div class="search search-lg">
+                    <i class="ph ph-magnifying-glass"></i>
+                    <input type="search" id="mun-busca" class="form-control" placeholder="Pesquisar pelo nome ou telefone..." oninput="renderMunicipes()" autocomplete="off">
+                </div>
+                <div class="summary-strip" id="mun-resumo" style="margin: 1rem 0;"></div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Munícipe</th>
+                                <th>Bairro</th>
+                                <th>Doou</th>
+                                <th class="right">Recebeu</th>
+                                <th class="right">Trocou</th>
+                                <th class="right">Saldo</th>
+                                <th class="right">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-municipes"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= CÂMBIO ================= -->
+        <section id="view-cambio" class="view">
+            <div class="page-head">
+                <div>
+                    <h1>Câmbio de recicláveis</h1>
+                    <p>Lance o que o munícipe trouxe; o sistema calcula quanto EcoCash entregar.</p>
+                </div>
+            </div>
+
+            <div class="sem-parada" id="cam-sem-parada"></div>
+
+            <form id="form-cambio" class="pdv precisa-parada" autocomplete="off">
+                <div class="card pdv-main">
+                    <div class="form-grid">
+                        <div class="field campo-municipe">
+                            <label for="cam-mun-busca">Munícipe</label>
+                            <div class="picker" id="cam-picker"></div>
+                        </div>
+                        <div class="field">
+                            <label for="cam-data">Data</label>
+                            <input type="date" id="cam-data" class="form-control" required>
+                        </div>
+                        <div class="field">
+                            <label for="cam-obs">Observação (opcional)</label>
+                            <input type="text" id="cam-obs" class="form-control">
+                        </div>
+                    </div>
+
+                    <div class="lines-box">
+                        <div class="lines-head lines-eco"><span>Material</span><span>Quantidade</span><span class="right">EcoCash</span><span></span></div>
+                        <div id="cam-linhas"></div>
+                        <button type="button" class="btn btn-ghost btn-sm" onclick="adicionarLinha('cam')"><i class="ph ph-plus-circle"></i> Adicionar outro material</button>
+                    </div>
+                    <div class="tabela-precos" id="cam-tabela"></div>
+                </div>
+
+                <aside class="card pdv-total">
+                    <span class="pdv-label">Entregar ao munícipe</span>
+                    <div class="pdv-valor"><i class="ph-fill ph-coins"></i><strong id="cam-total">0</strong><span>EcoCash</span></div>
+                    <p class="hint" id="cam-resumo"></p>
+                    <button type="submit" class="btn btn-success btn-lg" id="cam-enviar" disabled><i class="ph ph-check-circle"></i> Registrar câmbio</button>
+                </aside>
+            </form>
+
+            <div class="card precisa-parada">
+                <div class="card-head">
+                    <h2><i class="ph ph-clock-counter-clockwise"></i> Câmbios recentes</h2>
+                    <button class="link-btn" onclick="verHistorico({ tipo: 'CAMBIO' })">Ver todos <i class="ph ph-caret-right"></i></button>
+                </div>
+                <ul class="feed" id="feed-cambio"></ul>
+            </div>
+        </section>
+
+        <!-- ================= LOJA ================= -->
+        <section id="view-loja" class="view">
+            <div class="page-head">
+                <div>
+                    <h1>Troca na loja</h1>
+                    <p>Produtos levados com EcoCash. Desconta do saldo do munícipe e dá baixa no estoque da van.</p>
+                </div>
+            </div>
+
+            <div class="sem-parada" id="loj-sem-parada"></div>
+
+            <form id="form-loja" class="pdv precisa-parada" autocomplete="off">
+                <div class="card pdv-main">
+                    <div class="form-grid">
+                        <div class="field campo-municipe">
+                            <label for="loj-mun-busca">Munícipe</label>
+                            <div class="picker" id="loj-picker"></div>
+                        </div>
+                        <div class="field">
+                            <label for="loj-data">Data</label>
+                            <input type="date" id="loj-data" class="form-control" required>
+                        </div>
+                        <div class="field">
+                            <label for="loj-obs">Observação (opcional)</label>
+                            <input type="text" id="loj-obs" class="form-control">
+                        </div>
+                    </div>
+
+                    <div class="lines-box">
+                        <div class="lines-head lines-eco"><span>Produto</span><span>Quantidade</span><span class="right">EcoCash</span><span></span></div>
+                        <div id="loj-linhas"></div>
+                        <button type="button" class="btn btn-ghost btn-sm" onclick="adicionarLinha('loj')"><i class="ph ph-plus-circle"></i> Adicionar outro produto</button>
+                    </div>
+                </div>
+
+                <aside class="card pdv-total loja">
+                    <span class="pdv-label">Descontar do saldo</span>
+                    <div class="pdv-valor"><i class="ph-fill ph-coins"></i><strong id="loj-total">0</strong><span>EcoCash</span></div>
+                    <p class="hint" id="loj-resumo"></p>
+                    <button type="submit" class="btn btn-primary btn-lg" id="loj-enviar" disabled><i class="ph ph-check-circle"></i> Finalizar troca</button>
+                </aside>
+            </form>
+
+            <div class="card precisa-parada">
+                <div class="card-head">
+                    <h2><i class="ph ph-clock-counter-clockwise"></i> Trocas recentes</h2>
+                    <button class="link-btn" onclick="verHistorico({ tipo: 'LOJA' })">Ver todas <i class="ph ph-caret-right"></i></button>
+                </div>
+                <ul class="feed" id="feed-loja"></ul>
+            </div>
+        </section>
+
+        <!-- ================= ESTOQUE DA VAN ================= -->
+        <section id="view-estoque" class="view">
+            <div class="page-head">
+                <div>
+                    <h1>Estoque da van</h1>
+                    <p>Saldo de cada produto e entrada de mercadoria na van.</p>
+                </div>
+            </div>
+
+            <form id="form-entrada" class="card" autocomplete="off">
+                <div class="card-head">
+                    <h2><i class="ph ph-arrow-circle-down"></i> Entrada de produtos</h2>
+                </div>
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="ent-data">Data</label>
+                        <input type="date" id="ent-data" class="form-control" required>
+                    </div>
+                    <div class="field">
+                        <label for="ent-origem">Origem (doador / remetente)</label>
+                        <input type="text" id="ent-origem" class="form-control" list="lista-origens" placeholder="Ex: Galpão do Fundo Social" required>
+                    </div>
+                    <div class="field">
+                        <label for="ent-obs">Observação (opcional)</label>
+                        <input type="text" id="ent-obs" class="form-control">
+                    </div>
+                </div>
+                <div class="lines-box">
+                    <div class="lines-head"><span>Produto</span><span>Quantidade</span><span></span></div>
+                    <div id="ent-linhas"></div>
+                    <button type="button" class="btn btn-ghost btn-sm" onclick="adicionarLinha('ent')"><i class="ph ph-plus-circle"></i> Adicionar outro produto</button>
+                </div>
+                <div class="form-footer">
+                    <p class="hint" id="ent-resumo"></p>
+                    <button type="submit" class="btn btn-success"><i class="ph ph-check-circle"></i> Registrar entrada</button>
+                </div>
+            </form>
+
+            <div class="card">
+                <div class="card-head">
+                    <h2><i class="ph ph-stack"></i> Produtos</h2>
+                    <div class="search">
+                        <i class="ph ph-magnifying-glass"></i>
+                        <input type="search" id="est-busca" class="form-control" placeholder="Buscar produto..." oninput="renderEstoque()">
+                    </div>
+                </div>
+                <div class="stock-grid" id="cards-estoque"></div>
+            </div>
+        </section>
+
+        <!-- ================= PARADAS DA VAN (GESTOR) ================= -->
+        <section id="view-paradas" class="view so-gestor">
+            <div class="page-head">
+                <div>
+                    <h1>Paradas da van</h1>
+                    <p>Onde a van está. Ao encerrar a parada, o EcoCash dos munícipes expira e o cadastro deles sai da tela (continua guardado no banco e na planilha).</p>
+                </div>
+            </div>
+
+            <form id="form-parada" class="card" autocomplete="off">
+                <div class="card-head">
+                    <h2 id="parada-form-titulo"><i class="ph ph-map-pin-plus"></i> Nova parada</h2>
+                </div>
+                <input type="hidden" id="parada-id">
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="parada-bairro">Bairro</label>
+                        <input type="text" id="parada-bairro" class="form-control" list="lista-bairros" placeholder="Ex: Vila Virgínia" required>
+                    </div>
+                    <div class="field">
+                        <label for="parada-local">Ponto / endereço (opcional)</label>
+                        <input type="text" id="parada-local" class="form-control" placeholder="Ex: Praça da Igreja">
+                    </div>
+                    <div class="field">
+                        <label for="parada-inicio">Chegada</label>
+                        <input type="date" id="parada-inicio" class="form-control" required>
+                    </div>
+                    <div class="field">
+                        <label for="parada-fim">Saída prevista</label>
+                        <input type="date" id="parada-fim" class="form-control" required>
+                    </div>
+                </div>
+                <div class="form-footer">
+                    <p class="hint" id="parada-hint">A van fica em uma parada por vez.</p>
+                    <div class="page-actions">
+                        <button type="button" class="btn btn-secondary" id="parada-cancelar" style="display: none;" onclick="cancelarEdicaoParada()">Cancelar</button>
+                        <button type="submit" class="btn btn-primary" id="parada-enviar"><i class="ph ph-map-pin"></i> Iniciar parada</button>
+                    </div>
+                </div>
+            </form>
+
+            <div class="card">
+                <div class="card-head">
+                    <h2><i class="ph ph-path"></i> Todas as paradas</h2>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Bairro</th>
+                                <th>Período</th>
+                                <th class="right">Munícipes</th>
+                                <th class="right">Entregue</th>
+                                <th class="right">Trocado</th>
+                                <th class="right">Sobra</th>
+                                <th>Situação</th>
+                                <th class="right">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-paradas"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= MATERIAIS DE TROCA (GESTOR) ================= -->
+        <section id="view-materiais" class="view so-gestor">
+            <div class="page-head">
+                <div>
+                    <h1>Materiais de troca</h1>
+                    <p>O que o EcoBazar aceita no câmbio e quanto EcoCash cada um vale.</p>
+                </div>
+            </div>
+
+            <div class="card" id="painel-materiais-padrao" style="display: none;">
+                <div class="card-head"><h2><i class="ph ph-sparkle"></i> Comece pelos materiais de hoje</h2></div>
+                <p class="hint">Cria as regras que já eram usadas: 1 kg de tampinhas = 1 EcoCash e 20 caixas Tetra Pak = 1 EcoCash. Depois é só ajustar e incluir outros, como anel de lata.</p>
+                <button class="btn btn-primary" onclick="criarMateriaisPadrao()"><i class="ph ph-list-plus"></i> Criar tampinhas e caixas</button>
+            </div>
+
+            <form id="form-material" class="card" autocomplete="off">
+                <div class="card-head">
+                    <h2 id="material-form-titulo"><i class="ph ph-plus-circle"></i> Novo material</h2>
+                </div>
+                <input type="hidden" id="material-id">
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="material-nome">Nome</label>
+                        <input type="text" id="material-nome" class="form-control" placeholder="Ex: Anel de lata" required>
+                    </div>
+                    <div class="field">
+                        <label for="material-unidade">Medido em</label>
+                        <input type="text" id="material-unidade" class="form-control" list="lista-unidades-material" value="un" required>
+                    </div>
+                </div>
+                <div class="regra">
+                    <span>A cada</span>
+                    <input type="number" id="material-base" class="form-control" min="1" step="1" value="1" required aria-label="Quantidade">
+                    <span id="material-unidade-eco">un</span>
+                    <span>o munícipe recebe</span>
+                    <input type="number" id="material-valor" class="form-control" min="1" step="1" value="1" required aria-label="EcoCash">
+                    <span><i class="ph-fill ph-coins"></i> EcoCash</span>
+                </div>
+                <div class="form-footer">
+                    <p class="hint">Alterar o valor só vale para os próximos câmbios; os já registrados mantêm o valor da época.</p>
+                    <div class="page-actions">
+                        <button type="button" class="btn btn-secondary" id="material-cancelar" style="display: none;" onclick="cancelarEdicaoMaterial()">Cancelar</button>
+                        <button type="submit" class="btn btn-primary"><i class="ph ph-floppy-disk"></i> Salvar material</button>
+                    </div>
+                </div>
+            </form>
+
+            <div class="card">
+                <div class="card-head">
+                    <h2><i class="ph ph-list-bullets"></i> Materiais cadastrados</h2>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Material</th>
+                                <th>Regra de troca</th>
+                                <th class="right">Recebido na parada</th>
+                                <th class="right">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-materiais"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= PRODUTOS DA LOJA (GESTOR) ================= -->
+        <section id="view-produtos" class="view so-gestor">
+            <div class="page-head">
+                <div>
+                    <h1>Produtos da loja</h1>
+                    <p>O que pode ser levado com EcoCash e quanto custa. O cadastro é o mesmo do estoque do portal.</p>
+                </div>
+            </div>
+
+            <form id="form-produto" class="card" autocomplete="off">
+                <div class="card-head">
+                    <h2 id="produto-form-titulo"><i class="ph ph-plus-circle"></i> Novo produto</h2>
+                </div>
+                <input type="hidden" id="produto-id">
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="produto-nome">Nome</label>
+                        <input type="text" id="produto-nome" class="form-control" placeholder="Ex: Sabonete" required>
+                    </div>
+                    <div class="field">
+                        <label for="produto-categoria">Categoria</label>
+                        <input type="text" id="produto-categoria" class="form-control" list="lista-categorias" placeholder="Ex: Higiene">
+                    </div>
+                    <div class="field">
+                        <label for="produto-unidade">Unidade</label>
+                        <input type="text" id="produto-unidade" class="form-control" list="lista-unidades" value="un" required>
+                    </div>
+                    <div class="field">
+                        <label for="produto-preco">Preço (EcoCash)</label>
+                        <input type="number" id="produto-preco" class="form-control" min="1" step="1" value="1" required>
+                    </div>
+                    <div class="field">
+                        <label for="produto-minimo">Estoque mínimo (alerta)</label>
+                        <input type="number" id="produto-minimo" class="form-control" min="0" step="1" value="0">
+                    </div>
+                </div>
+                <div class="form-footer">
+                    <p class="hint" id="produto-areas-info">O produto aparece no EcoBazar. Para ele aparecer também em outra área, marque-a no cadastro de itens do Estoque.</p>
+                    <div class="page-actions">
+                        <button type="button" class="btn btn-secondary" id="produto-cancelar" style="display: none;" onclick="cancelarEdicaoProduto()">Cancelar</button>
+                        <button type="submit" class="btn btn-primary"><i class="ph ph-floppy-disk"></i> Salvar produto</button>
+                    </div>
+                </div>
+            </form>
+
+            <div class="card">
+                <div class="card-head">
+                    <h2><i class="ph ph-list-bullets"></i> Produtos cadastrados</h2>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Produto</th>
+                                <th>Categoria</th>
+                                <th class="right">Preço</th>
+                                <th class="right">Saldo</th>
+                                <th>Situação</th>
+                                <th class="right">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-produtos"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <datalist id="lista-origens"></datalist>
+    <datalist id="lista-bairros"></datalist>
+    <datalist id="lista-categorias"></datalist>
+    <datalist id="lista-unidades">
+        <option value="un"></option>
+        <option value="pct"></option>
+        <option value="cx"></option>
+        <option value="kg"></option>
+        <option value="L"></option>
+    </datalist>
+    <datalist id="lista-unidades-material">
+        <option value="un"></option>
+        <option value="kg"></option>
+        <option value="garrafa"></option>
+        <option value="saco"></option>
+        <option value="L"></option>
+    </datalist>
+
+    <div class="toasts" id="toasts"></div>
+
+    <!-- Cadastro de munícipe (vale só para a parada atual) -->
+    <div class="modal-overlay" id="modal-municipe" aria-hidden="true">
+        <form class="modal modal-form" id="form-municipe" role="dialog" aria-modal="true" aria-labelledby="municipe-titulo" autocomplete="off">
+            <div class="modal-icon"><i class="ph ph-user-plus"></i></div>
+            <h3 id="municipe-titulo">Cadastrar munícipe</h3>
+            <p class="modal-body" id="municipe-sub"></p>
+            <input type="hidden" id="municipe-id">
+            <div class="field">
+                <label for="municipe-nome">Nome</label>
+                <input type="text" id="municipe-nome" class="form-control" required>
+            </div>
+            <div class="field">
+                <label for="municipe-telefone">Telefone</label>
+                <input type="tel" id="municipe-telefone" class="form-control" placeholder="(11) 91234-5678" inputmode="tel" required>
+            </div>
+            <div class="field">
+                <label for="municipe-bairro">Bairro</label>
+                <input type="text" id="municipe-bairro" class="form-control" list="lista-bairros" required>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="fecharCadastroMunicipe()">Cancelar</button>
+                <button type="submit" class="btn btn-primary"><i class="ph ph-floppy-disk"></i> Salvar</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="modal-overlay" id="modal" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-titulo">
+            <div class="modal-icon" id="modal-icone"><i class="ph ph-question"></i></div>
+            <h3 id="modal-titulo"></h3>
+            <div class="modal-body" id="modal-corpo"></div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" id="modal-cancelar">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="modal-ok">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Compat v10 -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+    <script src="../auth.js?v=6"></script>
+    <script src="script.js?v=3"></script>
+</body>
+</html>

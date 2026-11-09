@@ -1,0 +1,287 @@
+/* =========================================================
+   EcoBazar
+   A base (layout, cards, tabelas, formulários) vem de ../fundo-social/style.css.
+   Aqui ficam só a cor do módulo (verde-azulado) e os componentes do EcoBazar.
+   ========================================================= */
+:root {
+    --brand-900: #0b3532;
+    --brand-800: #134e4a;
+    --brand-700: #115e59;
+    --brand-600: #0f766e;
+    --brand-500: #14b8a6;
+    --brand-200: #99f6e4;
+    --brand-100: #ccfbf1;
+    --brand-50: #f0fdfa;
+
+    --coin: #b45309;
+    --coin-bg: #fffbeb;
+    --coin-border: #fde68a;
+    --coin-mark: #f59e0b;
+}
+
+.form-control:focus { box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.2); }
+.btn-primary { box-shadow: 0 4px 12px -4px rgba(15, 118, 110, 0.6); }
+.avatar { background: linear-gradient(135deg, #5eead4, var(--brand-600)); }
+.btn-lg { height: 48px; font-size: 0.95rem; width: 100%; }
+.right { text-align: right; }
+
+/* ---------- EcoCash ---------- */
+.kpi-icon.coin { background: var(--coin-bg); color: var(--coin); }
+.eco {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    font-weight: 700;
+    color: var(--coin);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+.eco i { color: var(--coin-mark); }
+.eco.neg { color: var(--danger); }
+.chip.coin { background: var(--coin-bg); color: var(--coin); }
+
+/* ---------- Ponto de atendimento (câmbio e loja) ---------- */
+.pdv {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 1.25rem;
+    align-items: start;
+    margin-bottom: 1.25rem;
+}
+.pdv > .card { margin-bottom: 0; }
+.pdv-main .lines-box { margin-bottom: 0.75rem; }
+.pdv-total {
+    position: sticky;
+    top: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    background: linear-gradient(160deg, var(--brand-50), #fff 70%);
+    border-color: var(--brand-200);
+}
+.pdv-total.loja { background: linear-gradient(160deg, var(--coin-bg), #fff 70%); border-color: var(--coin-border); }
+.pdv-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-2);
+}
+.pdv-valor { display: flex; align-items: baseline; gap: 0.4rem; }
+.pdv-valor i { font-size: 1.6rem; color: var(--coin-mark); align-self: center; }
+.pdv-valor strong {
+    font-size: 3rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+.pdv-valor span { color: var(--text-2); font-weight: 600; }
+.pdv-total .hint { margin: 0; min-height: 1.3em; }
+
+/* Linhas com coluna de EcoCash */
+.lines-eco, .line.eco-line { grid-template-columns: minmax(0, 1fr) 150px 110px 36px; }
+.line-eco { text-align: right; }
+
+.tabela-precos { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.tabela-precos .chip { font-size: 0.75rem; padding: 0.2rem 0.6rem; }
+
+/* ---------- Totais por material ---------- */
+.material-totals { display: grid; gap: 0.6rem; }
+.material-row {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr) auto;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.65rem 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface-2);
+}
+.material-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    background: var(--success-bg);
+    color: var(--success);
+    font-size: 1.1rem;
+}
+.material-row strong { display: block; font-size: 0.9rem; }
+.material-row small { color: var(--text-3); font-size: 0.75rem; }
+.material-qty { text-align: right; font-weight: 800; font-variant-numeric: tabular-nums; }
+.material-qty small { display: block; font-weight: 500; }
+
+/* Cartões de produto: preço no topo */
+.stock-card .price { margin-left: auto; }
+
+/* Ícones do histórico */
+.feed-icon.CAMBIO { background: var(--success-bg); color: var(--success); }
+.feed-icon.LOJA { background: var(--coin-bg); color: var(--coin); }
+.feed-icon.ESTOQUE { background: var(--info-bg); color: var(--info); }
+.feed-title.truncate { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.badge-coin { background: var(--coin-bg); color: var(--coin); border-color: var(--coin-border); }
+td .itens-op { display: block; max-width: 340px; }
+
+/* ---------- Regra de troca (cadastro de material) ---------- */
+.regra {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.9rem 1rem;
+    margin-bottom: 1rem;
+    border: 1px dashed var(--brand-200);
+    border-radius: var(--radius);
+    background: var(--brand-50);
+    font-weight: 500;
+    color: var(--text-2);
+}
+.regra .form-control { width: 96px; text-align: center; font-weight: 700; color: var(--text); }
+.regra i { color: var(--coin-mark); }
+
+.card-head .search { flex: 0 1 280px; }
+.search-lg { max-width: none; }
+.search-lg .form-control { height: 48px; font-size: 1rem; }
+
+/* ---------- Parada da van ---------- */
+.van-pill {
+    margin: 0 1rem 0.25rem;
+    padding: 0.55rem 0.75rem;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.08);
+    font-size: 0.8rem;
+    line-height: 1.35;
+    color: rgba(255, 255, 255, 0.85);
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-start;
+}
+.van-pill i { font-size: 1.1rem; color: #5eead4; margin-top: 1px; }
+.van-pill strong { display: block; color: #fff; font-size: 0.85rem; }
+.van-pill.parada-off i { color: #fcd34d; }
+
+.parada-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.25rem;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(120deg, var(--brand-800), var(--brand-600));
+    color: #fff;
+    box-shadow: var(--shadow-md);
+}
+.parada-card .parada-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    font-size: 1.5rem;
+    background: rgba(255, 255, 255, 0.15);
+}
+.parada-card .parada-info { flex: 1; min-width: 200px; }
+.parada-card .parada-info span { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.75; font-weight: 600; }
+.parada-card .parada-info strong { display: block; font-size: 1.25rem; letter-spacing: -0.01em; }
+.parada-card .parada-info small { opacity: 0.85; }
+.parada-card .btn-secondary { background: rgba(255, 255, 255, 0.12); border-color: rgba(255, 255, 255, 0.25); color: #fff; }
+.parada-card .btn-secondary:hover:not(:disabled) { background: rgba(255, 255, 255, 0.2); border-color: rgba(255, 255, 255, 0.4); }
+.parada-card.off { background: linear-gradient(120deg, #475569, #64748b); }
+.parada-card .atrasada { display: inline-flex; gap: 0.3rem; align-items: center; margin-top: 0.25rem; padding: 0.1rem 0.5rem; border-radius: 999px; background: rgba(251, 191, 36, 0.2); color: #fde68a; font-size: 0.75rem; font-weight: 600; }
+
+/* Sem parada ativa: esconde o que depende dela e mostra o aviso */
+.sem-parada { display: none; }
+body.sem-parada-ativa .sem-parada { display: block; }
+body.sem-parada-ativa .precisa-parada { display: none !important; }
+.sem-parada .vazio { background: var(--surface); border: 1px dashed var(--border-strong); border-radius: var(--radius-lg); }
+
+/* ---------- Escolha do munícipe (câmbio e loja) ---------- */
+.campo-municipe { grid-column: span 2; }
+.picker { position: relative; }
+.picker .search { max-width: none; }
+.picker-list {
+    display: none;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + 4px);
+    z-index: 30;
+    max-height: 320px;
+    overflow-y: auto;
+    padding: 0.35rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+}
+.picker-list.open { display: block; }
+.picker-item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.55rem 0.6rem;
+    border: none;
+    border-radius: 8px;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+}
+.picker-item:hover, .picker-item:focus { background: var(--brand-50); outline: none; }
+.picker-item .pi-body { flex: 1; min-width: 0; }
+.picker-item strong { display: block; font-size: 0.9rem; }
+.picker-item small { color: var(--text-3); font-size: 0.75rem; }
+.picker-item.novo { color: var(--brand-600); font-weight: 600; border-top: 1px solid var(--border); border-radius: 0 0 8px 8px; margin-top: 0.25rem; }
+.picker-vazio { padding: 0.6rem; color: var(--text-3); font-size: 0.85rem; }
+.mini-avatar {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: var(--brand-100);
+    color: var(--brand-700);
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+.picker-selected {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    min-height: 42px;
+    padding: 0.35rem 0.4rem 0.35rem 0.5rem;
+    border: 1px solid var(--brand-500);
+    border-radius: 10px;
+    background: var(--brand-50);
+}
+.picker-selected[hidden], .picker-busca[hidden] { display: none; }
+.picker-selected .pi-body { flex: 1; min-width: 0; line-height: 1.25; }
+.picker-selected strong { display: block; font-size: 0.9rem; }
+.picker-selected small { color: var(--text-2); font-size: 0.75rem; }
+
+/* Modal com formulário */
+.modal-form .field { margin-bottom: 0.8rem; }
+.modal-form .modal-body { margin-bottom: 1rem; }
+.modal-form .modal-actions { margin-top: 1.1rem; }
+
+.saldo-forte { font-size: 1rem; }
+.hint.erro-texto { color: var(--danger); font-weight: 600; }
+td .acoes-mun { display: inline-flex; gap: 0.15rem; }
+
+@media (max-width: 1100px) {
+    .pdv { grid-template-columns: 1fr; }
+    .pdv-total { position: static; }
+}
+
+@media (max-width: 860px) {
+    .van-pill { order: 2; margin: 0 0.75rem 0.5rem; flex-basis: calc(100% - 1.5rem); }
+    .campo-municipe { grid-column: auto; }
+    .lines-eco { display: none; }
+    .line.eco-line { grid-template-columns: minmax(0, 1fr) 96px 36px; }
+    .line.eco-line .line-eco { order: 1; grid-column: 1 / -1; text-align: left; margin-top: -0.25rem; font-size: 0.85rem; }
+    .line.eco-line .line-info { order: 2; }
+}

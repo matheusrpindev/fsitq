@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arrecadação - Itaquá Rodeio Fest</title>
+    <!-- Favicon Rodeio -->
+    <link rel="icon" type="image/png" href="../head-rodeio.png">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Flatpickr (Calendário Premium) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    
+    <!-- Custom CSS -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="style.css?v=16">
+</head>
+<body>
+    <nav class="top-nav">
+        <div class="nav-links">
+            <a onclick="switchTab('lancamento')" id="tab-lancamento" class="nav-link active"><i class="ph ph-plus-circle"></i> Lançar Arrecadação</a>
+            <a onclick="switchTab('relatorio')" id="tab-relatorio" class="nav-link"><i class="ph ph-chart-bar"></i> Relatório / Estoque</a>
+        </div>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <a class='btn-back' href='/#dashboard'><i class="ph ph-arrow-left"></i> Voltar ao Portal</a>
+            <button onclick="fazerLogout()" class="btn-logout" title="Encerrar Sessão"><i class="ph ph-sign-out"></i> Sair</button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="hero-banner">
+            <div class="hero-single-logo">
+                <img src="../logo-rodeio.png" alt="Itaquá Rodeio Fest" class="hero-logo-main">
+            </div>
+            <div class="hero-text">
+                <h1>Central de Trocas Solidárias</h1>
+                <p>Alimentos por Ingressos — Itaquá Rodeio Fest 2026</p>
+            </div>
+        </div>
+
+        <!-- TELA DE LANÇAMENTO -->
+        <div id="view-lancamento" class="view-section active">
+            <div class="card">
+                <div style="display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
+                    <div class="form-group" style="flex: 1; min-width: 150px;">
+                        <label>Data</label>
+                        <input type="date" id="input-data" class="form-control" required>
+                    </div>
+                    <div class="form-group" style="flex: 1; min-width: 150px;">
+                        <label>Posto de Troca</label>
+                        <input type="hidden" id="input-local" value="Fundo Social">
+                        <div class="custom-select" id="cs-local">
+                            <div class="custom-select-trigger" onclick="toggleDropdown('cs-local')">
+                                <span>🏛️ Fundo Social (Presencial)</span>
+                                <i class="ph ph-caret-down"></i>
+                            </div>
+                            <div class="custom-select-options">
+                                <div class="custom-select-option selected" data-value="Fundo Social" onclick="selectOption('cs-local', this)">🏛️ Fundo Social (Presencial)</div>
+                                <div class="custom-select-option" data-value="Shopping" onclick="selectOption('cs-local', this)">🛍️ Shopping (Presencial)</div>
+                                <div class="custom-select-option" data-value="Paróquia" onclick="selectOption('cs-local', this)">⛪ Paróquia N. S. D'Ajuda (Presencial)</div>
+                                <div class="custom-select-option" data-value="Davo" onclick="selectOption('cs-local', this)">🛒 Supermercado D'avó (Presencial)</div>
+                                <div class="custom-select-option" data-value="Mega Xereta" onclick="selectOption('cs-local', this)">🏬 Mega Xereta (Bazar)</div>
+                                <div class="custom-select-option" data-value="Base GCM" onclick="selectOption('cs-local', this)">🚔 Base GCM (Presencial)</div>
+                                <div class="custom-select-option" data-value="Parceiros" onclick="selectOption('cs-local', this)">🤝 Parceiros (Presencial)</div>
+                                <div class="custom-select-option" data-value="Plena Saúde" onclick="selectOption('cs-local', this)">🏥 Plena Saúde (Hospital)</div>
+                                <div class="custom-select-option" data-value="Van Itinerante" onclick="selectOption('cs-local', this)">🚐 Van Itinerante</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bairro da Van (Oculto por Padrão) -->
+                <div id="div-van-bairro" class="form-group" style="display: none; margin-bottom: 2rem;">
+                    <label>Bairro Visitado pela Van</label>
+                    <input type="hidden" id="input-bairro" value="">
+                    <div class="custom-select" id="cs-bairro">
+                        <div class="custom-select-trigger" onclick="toggleDropdown('cs-bairro')">
+                            <span>-- Selecione o Bairro --</span>
+                            <i class="ph ph-caret-down"></i>
+                        </div>
+                        <div class="custom-select-options">
+                            <div class="custom-select-option" data-value="" onclick="selectOption('cs-bairro', this)">-- Selecione o Bairro --</div>
+                            <div class="custom-select-option" data-value="Jardim Gonçalves" onclick="selectOption('cs-bairro', this)">📍 Jardim Gonçalves</div>
+                            <div class="custom-select-option" data-value="Parque Marengo" onclick="selectOption('cs-bairro', this)">📍 Parque Marengo</div>
+                            <div class="custom-select-option" data-value="Estância Fraternidade" onclick="selectOption('cs-bairro', this)">📍 Estância Fraternidade</div>
+                            <div class="custom-select-option" data-value="Jd. N. S. D'Ajuda" onclick="selectOption('cs-bairro', this)">📍 Jardim N. S. D'Ajuda</div>
+                            <div class="custom-select-option" data-value="Vila São Carlos" onclick="selectOption('cs-bairro', this)">📍 Vila São Carlos</div>
+                            <div class="custom-select-option" data-value="Parque Piratininga" onclick="selectOption('cs-bairro', this)">📍 Parque Piratininga</div>
+                            <div class="custom-select-option" data-value="Jardim Paineira" onclick="selectOption('cs-bairro', this)">📍 Jardim Paineira</div>
+                            <div class="custom-select-option" data-value="Outro" onclick="selectOption('cs-bairro', this)">❓ Outro (Extraordinário)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 style="margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; color: var(--brand-yellow);">🎟️ Ingressos Entregues</h3>
+                
+                <div class="grid-form" style="margin-bottom: 2.5rem;">
+                    <!-- INGRESSO 05 -->
+                    <div class="product-card" style="border-color: var(--brand-orange);">
+                        <div class="product-header">
+                            <div class="product-icon" style="background: rgba(249, 115, 22, 0.2);"><i class="ph ph-ticket"></i></div>
+                            <div>
+                                <div class="product-name">05 de Setembro</div>
+                                <div class="product-unit">Gusttavo Lima</div>
+                                <div class="ticket-food-hint" id="hint-tk-05" style="font-size: 0.72rem; color: var(--brand-yellow); margin-top: 2px;">🍚 Arroz / Feijão</div>
+                            </div>
+                        </div>
+                        <div class="product-controls">
+                            <button type="button" class="btn-qty" onclick="changeTicketQty('ticket-05', -1)"><i class="ph ph-minus"></i></button>
+                            <input type="number" id="ticket-05" class="input-qty" value="0" min="0">
+                            <button type="button" class="btn-qty" onclick="changeTicketQty('ticket-05', 1)"><i class="ph ph-plus"></i></button>
+                        </div>
+                        <div class="card-subcontrols-block">
+                            <div class="racao-subcontrol-item">
+                                <span class="racao-sublabel">🐶 Ração (kg):</span>
+                                <div class="product-controls mini">
+                                    <button type="button" class="btn-qty mini" onclick="changeRacaoQty('racao-tk05', -1)"><i class="ph ph-minus"></i></button>
+                                    <input type="number" id="racao-tk05" class="input-qty mini" value="0" min="0">
+                                    <button type="button" class="btn-qty mini" onclick="changeRacaoQty('racao-tk05', 1)"><i class="ph ph-plus"></i></button>
+                                </div>
+                            </div>
+                            <div class="racao-subcontrol-item" style="margin-top: 0.35rem;">
+                                <span class="racao-sublabel">🍾 PET (kg):</span>
+                                <div class="product-controls mini">
+                                    <button type="button" class="btn-qty mini" onclick="changePetQty('pet-tk05', -1)"><i class="ph ph-minus"></i></button>
+                                    <input type="number" id="pet-tk05" class="input-qty mini" value="0" min="0">
+                                    <button type="button" class="btn-qty mini" onclick="changePetQty('pet-tk05', 1)"><i class="ph ph-plus"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- INGRESSO 06 -->
+                    <div class="product-card" style="border-color: var(--brand-orange);">
+                        <div class="product-header">
+                            <div class="product-icon" style="background: rgba(249, 115, 22, 0.2);"><i class="ph ph-ticket"></i></div>
+                            <div>
+                                <div class="product-name">06 de Setembro</div>
+                                <div class="product-unit">Simone Mendes</div>
+                                <div class="ticket-food-hint" id="hint-tk-06" style="font-size: 0.72rem; color: var(--brand-yellow); margin-top: 2px;">🫒 Óleo / Macarrão / Molho</div>
+                            </div>
+                        </div>
+                        <div class="product-controls">
+                            <button type="button" class="btn-qty" onclick="changeTicketQty('ticket-06', -1)"><i class="ph ph-minus"></i></button>
+                            <input type="number" id="ticket-06" class="input-qty" value="0" min="0">
+                            <button type="button" class="btn-qty" onclick="changeTicketQty('ticket-06', 1)"><i class="ph ph-plus"></i></button>
+                        </div>
+                        <div class="card-subcontrols-block">
+                            <div class="racao-subcontrol-item">
+                                <span class="racao-sublabel">🐶 Ração (kg):</span>
+                                <div class="product-controls mini">
+                                    <button type="button" class="btn-qty mini" onclick="changeRacaoQty('racao-tk06', -1)"><i class="ph ph-minus"></i></button>
+                                    <input type="number" id="racao-tk06" class="input-qty mini" value="0" min="0">
+                                    <button type="button" class="btn-qty mini" onclick="changeRacaoQty('racao-tk06', 1)"><i class="ph ph-plus"></i></button>
+                                </div>
+                            </div>
+                            <div class="racao-subcontrol-item" style="margin-top: 0.35rem;">
+                                <span class="racao-sublabel">🍾 PET (kg):</span>
+                                <div class="product-controls mini">
+                                    <button type="button" class="btn-qty mini" onclick="changePetQty('pet-tk06', -1)"><i class="ph ph-minus"></i></button>
+                                    <input type="number" id="pet-tk06" class="input-qty mini" value="0" min="0">
+                                    <button type="button" class="btn-qty mini" onclick="changePetQty('pet-tk06', 1)"><i class="ph ph-plus"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- INGRESSO 11 -->
+                    <div class="product-card" style="border-color: var(--brand-orange);">
+                        <div class="product-header">
+                            <div class="product-icon" style="background: rgba(249, 115, 22, 0.2);"><i class="ph ph-ticket"></i></div>
+                            <div>
+                                <div class="product-name">11 de Setembro</div>
+                                <div class="product-unit">Henrique & Juliano</div>
+                                <div class="ticket-food-hint" id="hint-tk-11" style="font-size: 0.72rem; color: var(--brand-yellow); margin-top: 2px;">☕ Café</div>
+                            </div>
+                        </div>
+                        <div class="product-controls">
+                            <button type="button" class="btn-qty" onclick="changeTicketQty('ticket-11', -1)"><i class="ph ph-minus"></i></button>
+                            <input type="number" id="ticket-11" class="input-qty" value="0" min="0">
+                            <button type="button" class="btn-qty" onclick="changeTicketQty('ticket-11', 1)"><i class="ph ph-plus"></i></button>
+                        </div>
+                        <div class="card-subcontrols-block">
+                            <div class="racao-subcontrol-item">
+                                <span class="racao-sublabel">🐶 Ração (kg):</span>
+                                <div class="product-controls mini">
+                                    <button type="button" class="btn-qty mini" onclick="changeRacaoQty('racao-tk11', -1)"><i class="ph ph-minus"></i></button>
+                                    <input type="number" id="racao-tk11" class="input-qty mini" value="0" min="0">
+                                    <button type="button" class="btn-qty mini" onclick="changeRacaoQty('racao-tk11', 1)"><i class="ph ph-plus"></i></button>
+                                </div>
+                            </div>
+                            <div class="racao-subcontrol-item" style="margin-top: 0.35rem;">
+                                <span class="racao-sublabel">🍾 PET (kg):</span>
+                                <div class="product-controls mini">
+                                    <button type="button" class="btn-qty mini" onclick="changePetQty('pet-tk11', -1)"><i class="ph ph-minus"></i></button>
+                                    <input type="number" id="pet-tk11" class="input-qty mini" value="0" min="0">
+                                    <button type="button" class="btn-qty mini" onclick="changePetQty('pet-tk11', 1)"><i class="ph ph-plus"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- INGRESSO 12 -->
+                    <div class="product-card" style="border-color: var(--brand-orange);">
+                        <div class="product-header">
+                            <div class="product-icon" style="background: rgba(249, 115, 22, 0.2);"><i class="ph ph-ticket"></i></div>
+                            <div>
+                                <div class="product-name">12 de Setembro</div>
+                                <div class="product-unit">Belo / Natanzinho</div>
+                                <div class="ticket-food-hint" id="hint-tk-12" style="font-size: 0.72rem; color: var(--brand-yellow); margin-top: 2px;">🥛 Leite / Açúcar / Sal</div>
+                            </div>
+                        </div>
+                        <div class="product-controls">
+                            <button type="button" class="btn-qty" onclick="changeTicketQty('ticket-12', -1)"><i class="ph ph-minus"></i></button>
+                            <input type="number" id="ticket-12" class="input-qty" value="0" min="0">
+                            <button type="button" class="btn-qty" onclick="changeTicketQty('ticket-12', 1)"><i class="ph ph-plus"></i></button>
+                        </div>
+                        <div class="card-subcontrols-block">
+                            <div class="racao-subcontrol-item">
+                                <span class="racao-sublabel">🐶 Ração (kg):</span>
+                                <div class="product-controls mini">
+                                    <button type="button" class="btn-qty mini" onclick="changeRacaoQty('racao-tk12', -1)"><i class="ph ph-minus"></i></button>
+                                    <input type="number" id="racao-tk12" class="input-qty mini" value="0" min="0">
+                                    <button type="button" class="btn-qty mini" onclick="changeRacaoQty('racao-tk12', 1)"><i class="ph ph-plus"></i></button>
+                                </div>
+                            </div>
+                            <div class="racao-subcontrol-item" style="margin-top: 0.35rem;">
+                                <span class="racao-sublabel">🍾 PET (kg):</span>
+                                <div class="product-controls mini">
+                                    <button type="button" class="btn-qty mini" onclick="changePetQty('pet-tk12', -1)"><i class="ph ph-minus"></i></button>
+                                    <input type="number" id="pet-tk12" class="input-qty mini" value="0" min="0">
+                                    <button type="button" class="btn-qty mini" onclick="changePetQty('pet-tk12', 1)"><i class="ph ph-plus"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 style="margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; color: var(--text-muted);">Itens Arrecadados (Calculado Automaticamente)</h3>
+                
+                <div class="grid-form">
+                    <!-- ARROZ -->
+                    <div class="product-card">
+                        <div class="product-header">
+                            <div class="product-icon"><i class="ph ph-package"></i></div>
+                            <div>
+                                <div class="product-name">Arroz</div>
+                                <div class="product-unit">Pacotes (kg)</div>
+                            </div>
+                        </div>
+                        <div class="product-controls">
+                            <button type="button" class="btn-qty" onclick="changeQty('item-arroz', -1)"><i class="ph ph-minus"></i></button>
+                            <input type="number" id="item-arroz" class="input-qty" value="0" min="0">
+                            <button type="button" class="btn-qty" onclick="changeQty('item-arroz', 1)"><i class="ph ph-plus"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- FEIJÃO -->
+                    <div class="product-card">
+                        <div class="product-header">
+                            <div class="product-icon"><i class="ph ph-plant"></i></div>
+                            <div>
+                                <div class="product-name">Feijão</div>
+                                <div class="product-unit">Pacotes (kg)</div>
+                            </div>
+                        </div>
+                        <div class="product-controls">
+                            <button type="button" class="btn-qty" onclick="changeQty('item-feijao', -1)"><i class="ph ph-minus"></i></button>
+                            <input type="number" id="item-feijao" class="input-qty" value="0" min="0">
+                            <button type="button" class="btn-qty" onclick="changeQty('item-feijao', 1)"><i class="ph ph-plus"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- ÓLEO -->
+                    <div class="product-card">
+                        <div class="product-header">
+                            <div class="product-icon"><i class="ph ph-drop"></i></div>
+                            <div>
+                                <div class="product-name">Óleo</div>
+                                <div class="product-unit">Unidades</div>
+                            </div>
+                        </div>
+                        <div class="product-controls">
+                            <button type="button" class="btn-qty" onclick="changeQty('item-oleo', -1)"><i class="ph ph-minus"></i></button>
+                            <input type="number" id="item-oleo" class="input-qty" value="0" min="0">
+                            <button type="button" class="btn-qty" onclick="changeQty('item-oleo', 1)"><i class="ph ph-plus"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- MACARRÃO -->
+                    <div class="product-card">
+                        <div class="product-header">
+                            <div class="product-icon"><i class="ph ph-cooking-pot"></i></div>
+                            <div>
+                                <div class="product-name">Macarrão</div>
+                                <div class="product-unit">Pacotes</div>
+                            </div>
+                        </div>
+                        <div class="product-controls">
+                            <button type="button" class="btn-qty" onclick="changeQty('item-macarrao', -1)"><i class="ph ph-minus"></i></button>
+                            <input type="number" id="item-macarrao" class="input-qty" value="0" min="0">
+                            <button type="button" class="btn-qty" onclick="changeQty('item-macarrao', 1)"><i class="ph ph-plus"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- MOLHO -->
+                    <div class="product-card">
+                        <div class="product-header">
+                            <div class="product-icon"><i class="ph ph-jar-label"></i></div>
+                            <div>
+                                <div class="product-name">Molho de Tomate</div>
+                                <div class="product-unit">Unidades</div>
+                            </div>
+                        </div>
+                        <div class="product-controls">
+                            <button type="button" class="btn-qty" onclick="changeQty('item-molho', -1)"><i class="ph ph-minus"></i></button>
+                            <input type="number" id="item-molho" class="input-qty" value="0" min="0">
+                            <button type="button" class="btn-qty" onclick="changeQty('item-molho', 1)"><i class="ph ph-plus"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- CAFÉ -->
+                    <div class="product-card">
+                        <div class="product-header">
+                            <div class="product-icon"><i class="ph ph-coffee"></i></div>
+                            <div>
+                                <div class="product-name">Café</div>
+                                <div class="product-unit">Pacotes</div>
+                            </div>
+                        </div>
+                        <div class="product-controls">
+                            <button type="button" class="btn-qty" onclick="changeQty('item-cafe', -1)"><i class="ph ph-minus"></i></button>
+                            <input type="number" id="item-cafe" class="input-qty" value="0" min="0">
+                            <button type="button" class="btn-qty" onclick="changeQty('item-cafe', 1)"><i class="ph ph-plus"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- LEITE -->
+                    <div class="product-card">
+                        <div class="product-header">
+                            <div class="product-icon"><i class="ph ph-pint-glass"></i></div>
+                            <div>
+                                <div class="product-name">Leite</div>
+                                <div class="product-unit">Caixas (L)</div>
+                            </div>
+                        </div>
+                        <div class="product-controls">
+                            <button type="button" class="btn-qty" onclick="changeQty('item-leite', -1)"><i class="ph ph-minus"></i></button>
+                            <input type="number" id="item-leite" class="input-qty" value="0" min="0">
+                            <button type="button" class="btn-qty" onclick="changeQty('item-leite', 1)"><i class="ph ph-plus"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- SAL -->
+                    <div class="product-card">
+                        <div class="product-header">
+                            <div class="product-icon"><i class="ph ph-cube"></i></div>
+                            <div>
+                                <div class="product-name">Sal</div>
+                                <div class="product-unit">Pacotes (kg)</div>
+                            </div>
+                        </div>
+                        <div class="product-controls">
+                            <button type="button" class="btn-qty" onclick="changeQty('item-sal', -1)"><i class="ph ph-minus"></i></button>
+                            <input type="number" id="item-sal" class="input-qty" value="0" min="0">
+                            <button type="button" class="btn-qty" onclick="changeQty('item-sal', 1)"><i class="ph ph-plus"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- AÇÚCAR -->
+                    <div class="product-card">
+                        <div class="product-header">
+                            <div class="product-icon"><i class="ph ph-cookie"></i></div>
+                            <div>
+                                <div class="product-name">Açúcar</div>
+                                <div class="product-unit">Pacotes (kg)</div>
+                            </div>
+                        </div>
+                        <div class="product-controls">
+                            <button type="button" class="btn-qty" onclick="changeQty('item-acucar', -1)"><i class="ph ph-minus"></i></button>
+                            <input type="number" id="item-acucar" class="input-qty" value="0" min="0">
+                            <button type="button" class="btn-qty" onclick="changeQty('item-acucar', 1)"><i class="ph ph-plus"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- RAÇÃO -->
+                    <div class="product-card">
+                        <div class="product-header">
+                            <div class="product-icon"><i class="ph ph-paw-print"></i></div>
+                            <div>
+                                <div class="product-name">Ração</div>
+                                <div class="product-unit">Pacotes (kg)</div>
+                            </div>
+                        </div>
+                        <div class="product-controls">
+                            <button type="button" class="btn-qty" onclick="changeQty('item-racao', -1)"><i class="ph ph-minus"></i></button>
+                            <input type="number" id="item-racao" class="input-qty" value="0" min="0">
+                            <button type="button" class="btn-qty" onclick="changeQty('item-racao', 1)"><i class="ph ph-plus"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- GARRAFAS PET (KG) -->
+                    <div class="product-card">
+                        <div class="product-header">
+                            <div class="product-icon"><i class="ph ph-recycle"></i></div>
+                            <div>
+                                <div class="product-name">Garrafas PET</div>
+                                <div class="product-unit">Peso (kg)</div>
+                            </div>
+                        </div>
+                        <div class="product-controls">
+                            <button type="button" class="btn-qty" onclick="changeQty('item-pet-kg', -1)"><i class="ph ph-minus"></i></button>
+                            <input type="number" id="item-pet-kg" class="input-qty" value="0" min="0">
+                            <button type="button" class="btn-qty" onclick="changeQty('item-pet-kg', 1)"><i class="ph ph-plus"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- EMBALAGENS PLÁSTICAS (UNIDADE) -->
+                    <div class="product-card">
+                        <div class="product-header">
+                            <div class="product-icon"><i class="ph ph-shopping-bag"></i></div>
+                            <div>
+                                <div class="product-name">Embalagens Plásticas</div>
+                                <div class="product-unit">Unidades (com Alimentos)</div>
+                            </div>
+                        </div>
+                        <div class="product-controls">
+                            <button type="button" class="btn-qty" onclick="changeQty('item-plastico', -1)"><i class="ph ph-minus"></i></button>
+                            <input type="number" id="item-plastico" class="input-qty" value="0" min="0">
+                            <button type="button" class="btn-qty" onclick="changeQty('item-plastico', 1)"><i class="ph ph-plus"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- FRALDAS (PACOTES - EXCLUSIVO PLENA SAÚDE) -->
+                    <div class="product-card" id="card-item-fralda" style="border-color: #06b6d4;">
+                        <div class="product-header">
+                            <div class="product-icon" style="background: rgba(6, 182, 212, 0.2); color: #06b6d4;"><i class="ph ph-baby"></i></div>
+                            <div>
+                                <div class="product-name" style="color: #06b6d4;">Fraldas</div>
+                                <div class="product-unit">Pacotes (Plena Saúde)</div>
+                            </div>
+                        </div>
+                        <div class="product-controls">
+                            <button type="button" class="btn-qty" onclick="changeQty('item-fralda', -1)"><i class="ph ph-minus"></i></button>
+                            <input type="number" id="item-fralda" class="input-qty" value="0" min="0">
+                            <button type="button" class="btn-qty" onclick="changeQty('item-fralda', 1)"><i class="ph ph-plus"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions-group">
+                    <button type="button" class="btn-secondary" onclick="limparLancamento()">
+                        <i class="ph ph-eraser"></i> Limpar
+                    </button>
+                    <button type="button" class="btn-primary" onclick="salvarLancamento()">
+                        <i class="ph ph-floppy-disk"></i> Confirmar Lançamento
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TELA DE RELATÓRIO -->
+        <div id="view-relatorio" class="view-section">
+            
+            <!-- HERO STATS (5 cards grandes) -->
+            <div class="hero-stats">
+                <div class="hero-stat-card">
+                    <div class="hero-stat-icon" style="background: linear-gradient(135deg, #f97316, #ea580c);">
+                        <i class="ph ph-package"></i>
+                    </div>
+                    <div class="hero-stat-info">
+                        <span class="hero-stat-label">Arrecadação Total</span>
+                        <span class="hero-stat-value" id="tot-geral">0</span>
+                        <span class="hero-stat-sub">itens/kg registrados</span>
+                    </div>
+                </div>
+                <div class="hero-stat-card">
+                    <div class="hero-stat-icon" style="background: linear-gradient(135deg, #eab308, #ca8a04);">
+                        <i class="ph ph-bowl-food"></i>
+                    </div>
+                    <div class="hero-stat-info">
+                        <span class="hero-stat-label">Alimentos</span>
+                        <span class="hero-stat-value" id="tot-alimentos-puros">0</span>
+                        <span class="hero-stat-sub">kg de alimentos</span>
+                    </div>
+                </div>
+                <div class="hero-stat-card">
+                    <div class="hero-stat-icon" style="background: linear-gradient(135deg, #ec4899, #db2777);">
+                        <i class="ph ph-paw-print"></i>
+                    </div>
+                    <div class="hero-stat-info">
+                        <span class="hero-stat-label">Ração Animal</span>
+                        <span class="hero-stat-value" id="tot-racao">0</span>
+                        <span class="hero-stat-sub">pacotes (kg)</span>
+                    </div>
+                </div>
+                <div class="hero-stat-card">
+                    <div class="hero-stat-icon" style="background: linear-gradient(135deg, #06b6d4, #0891b2);">
+                        <i class="ph ph-baby"></i>
+                    </div>
+                    <div class="hero-stat-info">
+                        <span class="hero-stat-label">Fraldas</span>
+                        <span class="hero-stat-value" id="tot-fraldas-hero">0</span>
+                        <span class="hero-stat-sub">pacotes (Plena Saúde)</span>
+                    </div>
+                </div>
+                <div class="hero-stat-card">
+                    <div class="hero-stat-icon" style="background: linear-gradient(135deg, #eab308, #ca8a04);">
+                        <i class="ph ph-recycle"></i>
+                    </div>
+                    <div class="hero-stat-info">
+                        <span class="hero-stat-label">Garrafas PET (kg)</span>
+                        <span class="hero-stat-value" id="tot-pet-kg">0</span>
+                        <span class="hero-stat-sub">quilos arrecadados</span>
+                    </div>
+                </div>
+                <div class="hero-stat-card">
+                    <div class="hero-stat-icon" style="background: linear-gradient(135deg, #22c55e, #16a34a);">
+                        <i class="ph ph-recycle"></i>
+                    </div>
+                    <div class="hero-stat-info">
+                        <span class="hero-stat-label">Embalagens Plásticas</span>
+                        <span class="hero-stat-value" id="tot-plastico">0</span>
+                        <span class="hero-stat-sub">unidades (com alimento)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- INGRESSOS -->
+            <div class="report-section">
+                <h3 class="report-title"><i class="ph ph-ticket"></i> Ingressos Distribuídos</h3>
+                <div class="totals-grid" style="margin-bottom: 2rem;">
+                    <div class="total-card" style="border-color: var(--brand-orange);">
+                        <h4>05/Set (G. Lima)</h4>
+                        <div class="value highlight" id="tot-tk-05">0</div>
+                    </div>
+                    <div class="total-card" style="border-color: var(--brand-orange);">
+                        <h4>06/Set (Simone)</h4>
+                        <div class="value highlight" id="tot-tk-06">0</div>
+                    </div>
+                    <div class="total-card" style="border-color: var(--brand-orange);">
+                        <h4>11/Set (H&J)</h4>
+                        <div class="value highlight" id="tot-tk-11">0</div>
+                    </div>
+                    <div class="total-card" style="border-color: var(--brand-orange);">
+                        <h4>12/Set (Belo)</h4>
+                        <div class="value highlight" id="tot-tk-12">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ITENS POR UNIDADE E PESO -->
+            <div class="report-section">
+                <h3 class="report-title"><i class="ph ph-package"></i> Itens por Unidade e Peso</h3>
+                <div class="totals-grid">
+                    <div class="total-card">
+                        <h4>🍚 Arroz</h4>
+                        <div class="value" id="tot-arroz">0</div>
+                    </div>
+                    <div class="total-card">
+                        <h4>🫘 Feijão</h4>
+                        <div class="value" id="tot-feijao">0</div>
+                    </div>
+                    <div class="total-card">
+                        <h4>🫒 Óleo</h4>
+                        <div class="value" id="tot-oleo">0</div>
+                    </div>
+                    <div class="total-card">
+                        <h4>🍝 Macarrão</h4>
+                        <div class="value" id="tot-macarrao">0</div>
+                    </div>
+                    <div class="total-card">
+                        <h4>🍅 Molho</h4>
+                        <div class="value" id="tot-molho">0</div>
+                    </div>
+                    <div class="total-card">
+                        <h4>☕ Café</h4>
+                        <div class="value" id="tot-cafe">0</div>
+                    </div>
+                    <div class="total-card">
+                        <h4>🥛 Leite</h4>
+                        <div class="value" id="tot-leite">0</div>
+                    </div>
+                    <div class="total-card">
+                        <h4>🧂 Sal</h4>
+                        <div class="value" id="tot-sal">0</div>
+                    </div>
+                    <div class="total-card">
+                        <h4>🍬 Açúcar</h4>
+                        <div class="value" id="tot-acucar">0</div>
+                    </div>
+                    <div class="total-card" style="border-color: #06b6d4;">
+                        <h4>👶 Fraldas (pacotes)</h4>
+                        <div class="value" id="tot-fralda-item" style="color: #06b6d4;">0</div>
+                    </div>
+                    <div class="total-card">
+                        <h4>🐶 Ração (kg)</h4>
+                        <div class="value" id="tot-racao-item">0</div>
+                    </div>
+                    <div class="total-card">
+                        <h4>🍾 PET (kg)</h4>
+                        <div class="value" id="tot-pet-item">0</div>
+                    </div>
+                    <div class="total-card">
+                        <h4>🛍️ Embalagens Plásticas (un)</h4>
+                        <div class="value" id="tot-plastico-item">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- HISTÓRICO (TABELA REDESENHADA) -->
+            <div class="report-section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; flex-wrap: wrap; gap: 1rem;">
+                    <h3 class="report-title" style="margin-bottom: 0;"><i class="ph ph-clock-counter-clockwise"></i> Histórico de Lançamentos</h3>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <button class="btn-export" onclick="exportarParaCSV()">
+                            <i class="ph ph-file-xls"></i> Exportar Planilha
+                        </button>
+                        <button class="btn-export" onclick="exportarParaPDF()" style="background: linear-gradient(135deg, #ED335B, #c0224a);">
+                            <i class="ph ph-file-pdf"></i> Exportar PDF
+                        </button>
+                    </div>
+                </div>
+
+                <!-- FILTROS DO HISTÓRICO -->
+                <div class="history-filter-bar">
+                    <div class="history-filter-group">
+                        <label for="filter-history-date"><i class="ph ph-calendar-blank"></i> Data:</label>
+                        <select id="filter-history-date" class="history-filter-select" onchange="renderTable()">
+                            <option value="">📅 Todas as Datas</option>
+                        </select>
+                    </div>
+
+                    <div class="history-filter-group">
+                        <label for="filter-history-local"><i class="ph ph-map-pin"></i> Local / Posto:</label>
+                        <select id="filter-history-local" class="history-filter-select" onchange="renderTable()">
+                            <option value="">📍 Todos os Locais</option>
+                            <option value="Fundo Social">🏛️ Fundo Social</option>
+                            <option value="Shopping">🛍️ Shopping</option>
+                            <option value="Paróquia">⛪ Paróquia N. S. D'Ajuda</option>
+                            <option value="Davo">🛒 Supermercado D'avó</option>
+                            <option value="Mega Xereta">🏬 Mega Xereta</option>
+                            <option value="Base GCM">🚔 Base GCM</option>
+                            <option value="Parceiros">🤝 Parceiros</option>
+                            <option value="Plena Saúde">🏥 Plena Saúde</option>
+                            <option value="Van Itinerante">🚐 Van Itinerante</option>
+                        </select>
+                    </div>
+
+                    <div class="history-filter-group">
+                        <label for="filter-history-order"><i class="ph ph-sort-ascending"></i> Ordenar por:</label>
+                        <select id="filter-history-order" class="history-filter-select" onchange="renderTable()">
+                            <option value="date">📅 Data da Arrecadação (mais recente)</option>
+                            <option value="timestamp">⏱️ Ordem de Lançamento (mais recente)</option>
+                        </select>
+                    </div>
+
+                    <button type="button" class="btn-filter-clear" id="btn-clear-filters" onclick="limparFiltrosHistorico()" title="Limpar Filtros" style="display: none;">
+                        <i class="ph ph-x-circle"></i> Limpar Filtros
+                    </button>
+                </div>
+
+                <div id="history-cards">
+                    <!-- Renderizado por JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RODAPÉ COM OS 3 LOGOS OFICIAIS -->
+    <footer class="app-footer">
+        <div class="footer-logos">
+            <img src="../logo-rodeio.png" alt="Itaquá Rodeio Fest" class="footer-logo">
+            <img src="../logo.png?v=10" alt="Fundo Social de Solidariedade" class="footer-logo">
+            <img src="../logo-itaqua.png" alt="Prefeitura de Itaquá" class="footer-logo">
+        </div>
+        <p class="footer-copy">Fundo Social de Solidariedade de Itaquaquecetuba — 2026</p>
+    </footer>
+
+    <div id="toast" class="toast"><i class="ph ph-check-circle"></i> Registrado com sucesso!</div>
+
+    <!-- Firebase Compat v10 -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    
+    <!-- Flatpickr JS -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/pt.js"></script>
+
+    <!-- ExcelJS para exportação formatada idêntica à planilha oficial -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+
+    <!-- jsPDF para exportação de PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
+    <script src="script.js?v=18"></script>
+</body>
+</html>

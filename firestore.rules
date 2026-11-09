@@ -1,0 +1,194 @@
+rules_version = '2';
+
+// -----------------------------------------------------------------
+// Portal Fundo Social — Firestore Security Rules
+//
+// Princípios:
+// 1. Nada é público. Tudo exige request.auth != null (Firebase Auth).
+// 2. Cada usuário só pode ler seu próprio documento em /usuarios,
+//    a menos que seja Administrador/Gestor.
+// 3. Um usuário NUNCA pode alterar seu próprio "role" ou "organs" —
+//    isso impede autopromoção a Administrador via escrita direta no
+//    Firestore (bypass da UI).
+// 4. Acesso aos dados de cada órgão (ex: rodeio_arrecadacoes) é
+//    liberado só para Administrador/Gestor ou para quem tem aquele
+//    órgão listado em seu documento de usuário.
+// -----------------------------------------------------------------
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- Helpers ----------
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function userDoc() {
+      return get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data;
+    }
+
+    function userRole() {
+      return isSignedIn() ? userDoc().role : null;
+    }
+
+    function userOrgans() {
+      return isSignedIn() && ('organs' in userDoc())
+        ? userDoc().organs
+        : [];
+    }
+
+    function isAdminOrGestor() {
+      return isSignedIn() &&
+        (userRole() == 'Administrador' || userRole() == 'Gestor');
+    }
+
+    function hasOrganAccess(organName) {
+      return isAdminOrGestor() ||
+        (isSignedIn() && organName in userOrgans());
+    }
+
+    // Dono do portal: o único login que ativa/desativa módulos
+    // (mesmo UID de OWNER_UID em auth.js).
+    function isOwner() {
+      return isSignedIn() && request.auth.uid == 'QC7sDiAG5tZQitj2rFcr7OHGOy73';
+    }
+
+    // Módulo ativo em config/portal. Sem o documento, todos contam como ativos.
+    // Módulo desativado continua liberado para o dono do portal.
+    function isModuleOn(organName) {
+      return isOwner() ||
+        !exists(/databases/$(database)/documents/config/portal) ||
+        organName in get(/databases/$(database)/documents/config/portal).data.get('modulosAtivos', []);
+    }
+
+    // ---------- /config/portal ----------
+    // Quais módulos estão ativos. Todo usuário logado lê (o portal precisa
+    // saber o que mostrar); só o dono do portal altera.
+    match /config/portal {
+      allow read: if isSignedIn();
+      allow write: if isOwner();
+    }
+
+    // ---------- /usuarios/{userId} ----------
+    // Documento de perfil. O ID do documento DEVE ser o UID do
+    // Firebase Auth (criado junto com a conta, não escolhido pelo usuário).
+    match /usuarios/{userId} {
+
+      // Ler: o próprio usuário lê seu perfil, ou Admin/Gestor lê qualquer um.
+      allow read: if isSignedIn() &&
+        (request.auth.uid == userId || isAdminOrGestor());
+
+      // Criar: só Admin/Gestor cria novos perfis (feito junto com a
+      // criação da conta no Firebase Auth, ver auth.js).
+      allow create: if isAdminOrGestor();
+
+      // Atualizar:
+      //  - Admin/Gestor pode atualizar qualquer campo de qualquer usuário.
+      //  - O próprio usuário pode atualizar seu perfil, MAS SEM mudar
+      //    role nem organs (evita autopromoção).
+      allow update: if isAdminOrGestor() ||
+        (
+          isSignedIn() &&
+          request.auth.uid == userId &&
+          request.resource.data.role == resource.data.role &&
+          request.resource.data.organs == resource.data.organs
+        );
+
+      // Deletar: só Admin/Gestor. (Isso remove só o PERFIL/permissões —
+      // a conta de login no Firebase Auth continua existindo até ser
+      // removida via Cloud Function com Admin SDK.)
+      allow delete: if isAdminOrGestor();
+    }
+
+    // ---------- /rodeio_arrecadacoes/{docId} ----------
+    match /rodeio_arrecadacoes/{docId} {
+      allow read:   if hasOrganAccess('Rodeio') && isModuleOn('Rodeio');
+      allow create: if hasOrganAccess('Rodeio') && isModuleOn('Rodeio');
+      allow update: if hasOrganAccess('Rodeio') && isModuleOn('Rodeio');
+      // Apagar lançamento histórico é mais sensível — reserva para
+      // Admin/Gestor. Ajuste se quiser permitir Assistentes também.
+      allow delete: if isAdminOrGestor();
+    }
+
+    // ---------- Estoque único (todas as áreas) ----------
+    // Um só cadastro de itens e um só histórico de movimentações para o
+    // portal inteiro. Cada item tem "areas" (em quais telas aparece) e cada
+    // lançamento tem "area" (qual tela lançou). O saldo é compartilhado.
+
+    // Áreas do portal que usam o estoque (acrescente aqui ao liberar uma nova)
+    function stockAreas() {
+      return ['Fundo Social', 'Bazar', 'Casa da Mulher'];
+    }
+
+    function hasStockAccess() {
+      return isAdminOrGestor() ||
+        (isSignedIn() && userOrgans().hasAny(stockAreas()));
+    }
+
+    // Itens: cadastro, edição, áreas e ativar/desativar só Admin/Gestor.
+    // Os demais níveis só leem o catálogo (para lançar entradas e saídas).
+    match /estoque_itens/{itemId} {
+      allow read: if hasStockAccess();
+      allow create, update, delete: if isAdminOrGestor();
+    }
+
+    // Entradas, saídas e ajustes. O lançamento precisa ser da área de quem
+    // lança e estar no nome de quem está logado; não é editado depois —
+    // erro se corrige excluindo (Admin/Gestor). Lançamentos antigos sem
+    // "area" contam como do Fundo Social.
+    match /estoque_movimentacoes/{movId} {
+      allow read: if hasStockAccess();
+      allow create: if hasOrganAccess(request.resource.data.get('area', 'Fundo Social')) &&
+        isModuleOn(request.resource.data.get('area', 'Fundo Social')) &&
+        request.resource.data.usuarioId == request.auth.uid;
+      allow update: if false;
+      allow delete: if isAdminOrGestor();
+    }
+
+    // ---------- EcoBazar (van itinerante) ----------
+    // Paradas da van (bairro onde está): só Admin/Gestor abre, edita e encerra.
+    match /ecobazar_paradas/{paradaId} {
+      allow read: if hasOrganAccess('Bazar') && isModuleOn('Bazar');
+      allow create, update, delete: if isAdminOrGestor();
+    }
+
+    // Munícipes cadastrados numa parada. Quem atende cadastra e corrige
+    // (sem mudar a parada); só Admin/Gestor exclui. Nada é apagado ao
+    // encerrar a parada: o cadastro só deixa de aparecer na tela.
+    match /ecobazar_municipes/{municipeId} {
+      allow read: if hasOrganAccess('Bazar') && isModuleOn('Bazar');
+      allow create: if hasOrganAccess('Bazar') && isModuleOn('Bazar') &&
+        request.resource.data.usuarioId == request.auth.uid;
+      allow update: if hasOrganAccess('Bazar') && isModuleOn('Bazar') &&
+        request.resource.data.paradaId == resource.data.paradaId;
+      allow delete: if isAdminOrGestor();
+    }
+
+    // Materiais de troca (o que o câmbio aceita e quanto EcoCash vale):
+    // quem atende o Bazar lê; só Admin/Gestor cadastra, altera e exclui.
+    match /ecobazar_materiais/{materialId} {
+      allow read: if hasOrganAccess('Bazar') && isModuleOn('Bazar');
+      allow create, update, delete: if isAdminOrGestor();
+    }
+
+    // Câmbios, trocas na loja e entradas de produto. Lançado no nome de
+    // quem está logado, sem edição depois; só Admin/Gestor exclui. As baixas
+    // de estoque da loja ficam em estoque_movimentacoes (area 'Bazar').
+    match /ecobazar_operacoes/{opId} {
+      allow read: if hasOrganAccess('Bazar') && isModuleOn('Bazar');
+      allow create: if hasOrganAccess('Bazar') && isModuleOn('Bazar') &&
+        request.resource.data.usuarioId == request.auth.uid;
+      allow update: if false;
+      allow delete: if isAdminOrGestor();
+    }
+
+    // ---------- Qualquer outra coleção futura ----------
+    // Nega tudo por padrão. Quando criar um novo módulo/órgão
+    // (Casa da Mulher, Bazar, etc.), adicione um bloco match dedicado
+    // acima seguindo o mesmo padrão de hasOrganAccess('NomeDoOrgao').
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estoque - Fundo Social</title>
+    <link rel="icon" type="image/png" href="../head.png">
+    <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+    <link rel="stylesheet" href="style.css?v=3">
+</head>
+<body>
+
+    <div id="loading">
+        <img src="../logo.png" alt="">
+        <div class="spinner"></div>
+        <span>Carregando estoque...</span>
+    </div>
+
+    <!-- Barra lateral -->
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-logo"><img src="../logo.png" alt="Fundo Social"></div>
+            <div>
+                <strong>Estoque</strong>
+                <span>Fundo Social</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <span class="nav-label">Acompanhar</span>
+            <a onclick="switchTab('dashboard')" id="tab-dashboard" class="nav-item active"><i class="ph ph-squares-four"></i> Visão geral</a>
+            <a onclick="switchTab('movimentacoes')" id="tab-movimentacoes" class="nav-item"><i class="ph ph-list-magnifying-glass"></i> Movimentações</a>
+
+            <span class="nav-label">Lançar</span>
+            <a onclick="switchTab('entradas')" id="tab-entradas" class="nav-item"><i class="ph ph-arrow-circle-down"></i> Entrada</a>
+            <a onclick="switchTab('saidas')" id="tab-saidas" class="nav-item"><i class="ph ph-arrow-circle-up"></i> Saída</a>
+            <a onclick="switchTab('inventario')" id="tab-inventario" class="nav-item"><i class="ph ph-clipboard-text"></i> Inventário</a>
+
+            <!-- Cadastro de itens: só Administrador/Gestor -->
+            <span class="nav-label so-gestor">Cadastros</span>
+            <a onclick="switchTab('itens')" id="tab-itens" class="nav-item so-gestor"><i class="ph ph-package"></i> Itens</a>
+        </nav>
+
+        <div class="sidebar-user">
+            <div class="avatar" id="user-avatar"></div>
+            <div class="user-meta">
+                <strong id="user-name"></strong>
+                <span id="user-role"></span>
+            </div>
+            <a class='icon-btn' href='/#dashboard' title='Voltar ao portal'><i class="ph ph-house"></i></a>
+            <button class="icon-btn" onclick="sair()" title="Sair"><i class="ph ph-sign-out"></i></button>
+        </div>
+    </aside>
+
+    <main class="main">
+
+        <div id="aviso-erro" class="alert alert-danger"><i class="ph ph-warning-circle"></i><span></span></div>
+
+        <!-- ================= VISÃO GERAL ================= -->
+        <section id="view-dashboard" class="view active">
+            <div class="page-head">
+                <div>
+                    <h1>Visão geral</h1>
+                    <p>Saldo atual do galpão e últimas movimentações.</p>
+                </div>
+                <div class="page-actions">
+                    <button class="btn btn-secondary" onclick="switchTab('saidas')"><i class="ph ph-arrow-circle-up"></i> Nova saída</button>
+                    <button class="btn btn-primary" onclick="switchTab('entradas')"><i class="ph ph-arrow-circle-down"></i> Nova entrada</button>
+                </div>
+            </div>
+
+            <div class="kpi-grid">
+                <div class="kpi">
+                    <div class="kpi-icon"><i class="ph ph-package"></i></div>
+                    <div>
+                        <div class="kpi-label">Itens no estoque</div>
+                        <div class="kpi-value" id="kpi-itens">0</div>
+                        <div class="kpi-hint" id="kpi-itens-hint"></div>
+                    </div>
+                </div>
+                <div class="kpi">
+                    <div class="kpi-icon warning" id="kpi-alerta-icon"><i class="ph ph-warning"></i></div>
+                    <div>
+                        <div class="kpi-label">Precisam de atenção</div>
+                        <div class="kpi-value" id="kpi-alerta">0</div>
+                        <div class="kpi-hint" id="kpi-alerta-hint"></div>
+                    </div>
+                </div>
+                <div class="kpi">
+                    <div class="kpi-icon success"><i class="ph ph-arrow-circle-down"></i></div>
+                    <div>
+                        <div class="kpi-label">Entradas no mês</div>
+                        <div class="kpi-value" id="kpi-entradas">0</div>
+                        <div class="kpi-hint">lançamentos</div>
+                    </div>
+                </div>
+                <div class="kpi">
+                    <div class="kpi-icon danger"><i class="ph ph-arrow-circle-up"></i></div>
+                    <div>
+                        <div class="kpi-label">Saídas no mês</div>
+                        <div class="kpi-value" id="kpi-saidas">0</div>
+                        <div class="kpi-hint">lançamentos</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-head">
+                    <h2><i class="ph ph-stack"></i> Estoque por item</h2>
+                    <label class="switch"><input type="checkbox" id="dash-alerta" onchange="renderDashboard()"> Só itens em alerta</label>
+                </div>
+                <div class="toolbar">
+                    <div class="search">
+                        <i class="ph ph-magnifying-glass"></i>
+                        <input type="search" id="dash-busca" class="form-control" placeholder="Buscar item..." oninput="renderDashboard()">
+                    </div>
+                    <div class="chips" id="dash-categorias"></div>
+                </div>
+                <div class="stock-grid" id="cards-estoque"></div>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-head">
+                        <h2><i class="ph ph-clock-counter-clockwise"></i> Últimas movimentações</h2>
+                        <button class="link-btn" onclick="verMovimentacoes({})">Ver todas <i class="ph ph-caret-right"></i></button>
+                    </div>
+                    <ul class="feed" id="feed-recentes"></ul>
+                </div>
+                <div class="card">
+                    <div class="card-head">
+                        <h2><i class="ph ph-bell-ringing"></i> Atenção</h2>
+                    </div>
+                    <ul class="feed" id="feed-alertas"></ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= MOVIMENTAÇÕES ================= -->
+        <section id="view-movimentacoes" class="view">
+            <div class="page-head">
+                <div>
+                    <h1>Movimentações</h1>
+                    <p>Histórico completo de entradas, saídas e ajustes, com filtros.</p>
+                </div>
+                <div class="page-actions">
+                    <button class="btn btn-secondary" onclick="window.print()"><i class="ph ph-printer"></i> Imprimir</button>
+                    <button class="btn btn-primary" onclick="exportarExcel()"><i class="ph ph-microsoft-excel-logo"></i> Exportar Excel</button>
+                </div>
+            </div>
+
+            <div class="card filters">
+                <div class="card-head">
+                    <h2><i class="ph ph-funnel"></i> Filtros <span class="filter-count" id="filtro-contagem" style="display: none;"></span></h2>
+                    <button class="btn btn-ghost btn-sm" onclick="limparFiltros()"><i class="ph ph-x-circle"></i> Limpar filtros</button>
+                </div>
+
+                <div class="filter-row">
+                    <span class="field-label">Período</span>
+                    <div class="chips" id="filtro-periodos">
+                        <button class="chip-btn" data-periodo="hoje" onclick="definirPeriodo('hoje')">Hoje</button>
+                        <button class="chip-btn" data-periodo="7dias" onclick="definirPeriodo('7dias')">7 dias</button>
+                        <button class="chip-btn" data-periodo="mes" onclick="definirPeriodo('mes')">Este mês</button>
+                        <button class="chip-btn" data-periodo="mesPassado" onclick="definirPeriodo('mesPassado')">Mês passado</button>
+                        <button class="chip-btn" data-periodo="ano" onclick="definirPeriodo('ano')">Este ano</button>
+                        <button class="chip-btn active" data-periodo="tudo" onclick="definirPeriodo('tudo')">Tudo</button>
+                    </div>
+                    <div class="date-range">
+                        <input type="date" id="f-de" class="form-control sm" onchange="aplicarFiltros(true)" aria-label="De">
+                        <span class="card-sub">até</span>
+                        <input type="date" id="f-ate" class="form-control sm" onchange="aplicarFiltros(true)" aria-label="Até">
+                    </div>
+                </div>
+
+                <div class="filter-row">
+                    <span class="field-label">Tipo</span>
+                    <div class="segmented" id="filtro-tipos">
+                        <button data-tipo="" class="active" onclick="definirTipo('')">Todos</button>
+                        <button data-tipo="ENTRADA" onclick="definirTipo('ENTRADA')">Entradas</button>
+                        <button data-tipo="SAIDA" onclick="definirTipo('SAIDA')">Saídas</button>
+                        <button data-tipo="AJUSTE" onclick="definirTipo('AJUSTE')">Ajustes</button>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="f-item">Item</label>
+                        <select id="f-item" class="form-control sm" onchange="aplicarFiltros()"></select>
+                    </div>
+                    <div class="field">
+                        <label for="f-categoria">Categoria</label>
+                        <select id="f-categoria" class="form-control sm" onchange="aplicarFiltros()"></select>
+                    </div>
+                    <div class="field">
+                        <label for="f-local">Origem / destino</label>
+                        <input type="text" id="f-local" class="form-control sm" list="lista-locais" placeholder="Qualquer" oninput="aplicarFiltros()">
+                    </div>
+                    <div class="field">
+                        <label for="f-motivo">Motivo da saída</label>
+                        <select id="f-motivo" class="form-control sm" onchange="aplicarFiltros()"></select>
+                    </div>
+                    <div class="field">
+                        <label for="f-usuario">Lançado por</label>
+                        <select id="f-usuario" class="form-control sm" onchange="aplicarFiltros()"></select>
+                    </div>
+                    <div class="field" id="f-area-campo">
+                        <label for="f-area">Área que lançou</label>
+                        <select id="f-area" class="form-control sm" onchange="aplicarFiltros()"></select>
+                    </div>
+                    <div class="field">
+                        <label for="f-busca">Busca livre</label>
+                        <input type="search" id="f-busca" class="form-control sm" placeholder="Observação, nome..." oninput="aplicarFiltros()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="summary-strip" id="mov-resumo"></div>
+                <details class="resumo" id="mov-resumo-itens">
+                    <summary><i class="ph ph-caret-right"></i> Resumo por item no período</summary>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th class="right">Entradas</th>
+                                    <th class="right">Saídas</th>
+                                    <th class="right">Ajustes</th>
+                                    <th class="right">Resultado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-resumo-itens"></tbody>
+                        </table>
+                    </div>
+                </details>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Tipo</th>
+                                <th>Item</th>
+                                <th class="right">Qtd</th>
+                                <th>Origem / destino</th>
+                                <th>Observação</th>
+                                <th>Lançado por</th>
+                                <th class="so-gestor"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-movimentacoes"></tbody>
+                    </table>
+                </div>
+                <div class="load-more" id="mov-mais"></div>
+            </div>
+        </section>
+
+        <!-- ================= ENTRADA ================= -->
+        <section id="view-entradas" class="view">
+            <div class="page-head">
+                <div>
+                    <h1>Registrar entrada</h1>
+                    <p>Doações e materiais recebidos no galpão. Pode lançar vários itens de uma vez.</p>
+                </div>
+            </div>
+
+            <form id="form-entrada" class="card" autocomplete="off">
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="ent-data">Data</label>
+                        <input type="date" id="ent-data" class="form-control" required>
+                    </div>
+                    <div class="field">
+                        <label for="ent-local">Origem (doador / remetente)</label>
+                        <input type="text" id="ent-local" class="form-control" list="lista-origens" placeholder="Ex: Fundo Social de São Paulo" required>
+                    </div>
+                    <div class="field">
+                        <label for="ent-obs">Observação (opcional)</label>
+                        <input type="text" id="ent-obs" class="form-control" placeholder="Ex: Campanha do agasalho">
+                    </div>
+                </div>
+
+                <div class="lines-box">
+                    <div class="lines-head"><span>Item</span><span>Quantidade</span><span></span></div>
+                    <div id="ent-linhas"></div>
+                    <button type="button" class="btn btn-ghost btn-sm" onclick="adicionarLinha('ent')"><i class="ph ph-plus-circle"></i> Adicionar outro item</button>
+                </div>
+
+                <div class="form-footer">
+                    <p class="hint" id="ent-resumo"></p>
+                    <button type="submit" class="btn btn-success"><i class="ph ph-check-circle"></i> Registrar entrada</button>
+                </div>
+            </form>
+
+            <div class="card">
+                <div class="card-head">
+                    <h2><i class="ph ph-clock-counter-clockwise"></i> Entradas recentes</h2>
+                    <button class="link-btn" onclick="verMovimentacoes({ tipo: 'ENTRADA' })">Ver todas <i class="ph ph-caret-right"></i></button>
+                </div>
+                <ul class="feed" id="feed-entradas"></ul>
+            </div>
+        </section>
+
+        <!-- ================= SAÍDA ================= -->
+        <section id="view-saidas" class="view">
+            <div class="page-head">
+                <div>
+                    <h1>Registrar saída</h1>
+                    <p>Baixa no estoque. O saldo disponível aparece em cada item.</p>
+                </div>
+            </div>
+
+            <form id="form-saida" class="card" autocomplete="off">
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="sai-data">Data</label>
+                        <input type="date" id="sai-data" class="form-control" required>
+                    </div>
+                    <div class="field">
+                        <label for="sai-local">Destino (quem recebeu)</label>
+                        <input type="text" id="sai-local" class="form-control" list="lista-destinos" placeholder="Ex: Secretaria de Assistência Social" required>
+                    </div>
+                    <div class="field">
+                        <label for="sai-motivo">Motivo</label>
+                        <select id="sai-motivo" class="form-control" required></select>
+                    </div>
+                    <div class="field">
+                        <label for="sai-obs">Observação (opcional)</label>
+                        <input type="text" id="sai-obs" class="form-control">
+                    </div>
+                </div>
+
+                <div class="lines-box">
+                    <div class="lines-head"><span>Item</span><span>Quantidade</span><span></span></div>
+                    <div id="sai-linhas"></div>
+                    <button type="button" class="btn btn-ghost btn-sm" onclick="adicionarLinha('sai')"><i class="ph ph-plus-circle"></i> Adicionar outro item</button>
+                </div>
+
+                <div class="form-footer">
+                    <p class="hint" id="sai-resumo"></p>
+                    <button type="submit" class="btn btn-primary"><i class="ph ph-check-circle"></i> Registrar saída</button>
+                </div>
+            </form>
+
+            <div class="card">
+                <div class="card-head">
+                    <h2><i class="ph ph-clock-counter-clockwise"></i> Saídas recentes</h2>
+                    <button class="link-btn" onclick="verMovimentacoes({ tipo: 'SAIDA' })">Ver todas <i class="ph ph-caret-right"></i></button>
+                </div>
+                <ul class="feed" id="feed-saidas"></ul>
+            </div>
+        </section>
+
+        <!-- ================= INVENTÁRIO ================= -->
+        <section id="view-inventario" class="view">
+            <div class="page-head">
+                <div>
+                    <h1>Contagem de inventário</h1>
+                    <p>Informe o que foi contado no galpão; o sistema lança a diferença como ajuste.</p>
+                </div>
+            </div>
+
+            <form id="form-inventario" class="card" autocomplete="off">
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="inv-data">Data da contagem</label>
+                        <input type="date" id="inv-data" class="form-control" required>
+                    </div>
+                    <div class="field">
+                        <label for="inv-obs">Observação (opcional)</label>
+                        <input type="text" id="inv-obs" class="form-control" placeholder="Ex: Contagem mensal">
+                    </div>
+                    <div class="field">
+                        <label for="inv-busca">Filtrar itens</label>
+                        <input type="search" id="inv-busca" class="form-control" placeholder="Nome ou categoria..." oninput="filtrarInventario()">
+                    </div>
+                </div>
+                <p class="hint">Deixe em branco os itens que não foram contados.</p>
+                <div class="table-wrap" style="margin-bottom: 1rem;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Categoria</th>
+                                <th class="right">Saldo no sistema</th>
+                                <th>Quantidade contada</th>
+                                <th class="right">Diferença</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-inventario"></tbody>
+                    </table>
+                </div>
+                <div class="form-footer">
+                    <p class="hint" id="inv-resumo"></p>
+                    <button type="submit" class="btn btn-primary"><i class="ph ph-check-circle"></i> Salvar contagem</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- ================= ITENS ================= -->
+        <section id="view-itens" class="view so-gestor">
+            <div class="page-head">
+                <div>
+                    <h1>Itens do estoque</h1>
+                    <p>Cadastro único para todas as áreas do portal. Cada item aparece nas áreas marcadas.</p>
+                </div>
+            </div>
+
+            <div class="card" id="painel-itens-padrao" style="display: none;">
+                <div class="card-head"><h2><i class="ph ph-sparkle"></i> Comece pelos itens da planilha</h2></div>
+                <p class="hint">
+                    Cria de uma vez os itens da planilha de recebidos (cestas, macarrão, leite, cobertores,
+                    fraldas P/M/G/XG, limpeza, higiene e diversos). Depois é só ajustar.
+                </p>
+                <button class="btn btn-primary" onclick="criarItensPadrao()"><i class="ph ph-list-plus"></i> Criar itens da planilha</button>
+            </div>
+
+            <form id="form-item" class="card" autocomplete="off">
+                <div class="card-head">
+                    <h2 id="item-form-titulo"><i class="ph ph-plus-circle"></i> Novo item</h2>
+                </div>
+                <input type="hidden" id="item-id">
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="item-nome">Nome</label>
+                        <input type="text" id="item-nome" class="form-control" required>
+                    </div>
+                    <div class="field">
+                        <label for="item-categoria">Categoria</label>
+                        <input type="text" id="item-categoria" class="form-control" list="lista-categorias" placeholder="Ex: Alimentos">
+                    </div>
+                    <div class="field">
+                        <label for="item-unidade">Unidade</label>
+                        <input type="text" id="item-unidade" class="form-control" list="lista-unidades" value="un" required>
+                    </div>
+                    <div class="field">
+                        <label for="item-minimo">Estoque mínimo (alerta)</label>
+                        <input type="number" id="item-minimo" class="form-control" min="0" step="1" value="0">
+                    </div>
+                </div>
+                <div class="field" style="margin-bottom: 1rem;">
+                    <span class="field-label">Aparece nas áreas</span>
+                    <div class="checks" id="item-areas"></div>
+                </div>
+                <div class="form-footer">
+                    <p class="hint">O saldo é um só: uma saída lançada em qualquer área baixa o estoque em todas.</p>
+                    <div class="page-actions">
+                        <button type="button" class="btn btn-secondary" id="item-cancelar" style="display: none;" onclick="cancelarEdicaoItem()">Cancelar</button>
+                        <button type="submit" class="btn btn-primary"><i class="ph ph-floppy-disk"></i> Salvar item</button>
+                    </div>
+                </div>
+            </form>
+
+            <div class="card">
+                <div class="card-head">
+                    <h2><i class="ph ph-list-bullets"></i> Itens cadastrados</h2>
+                    <label class="switch"><input type="checkbox" id="itens-todas-areas" onchange="renderItens()"> Mostrar itens de todas as áreas</label>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Categoria</th>
+                                <th>Áreas</th>
+                                <th class="right">Mínimo</th>
+                                <th class="right">Saldo</th>
+                                <th>Situação</th>
+                                <th class="right">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-itens"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <datalist id="lista-origens"></datalist>
+    <datalist id="lista-destinos"></datalist>
+    <datalist id="lista-locais"></datalist>
+    <datalist id="lista-categorias"></datalist>
+    <datalist id="lista-unidades">
+        <option value="un"></option>
+        <option value="pct"></option>
+        <option value="cx"></option>
+        <option value="fardo"></option>
+        <option value="kg"></option>
+        <option value="L"></option>
+    </datalist>
+
+    <div class="toasts" id="toasts"></div>
+
+    <div class="modal-overlay" id="modal" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-titulo">
+            <div class="modal-icon" id="modal-icone"><i class="ph ph-question"></i></div>
+            <h3 id="modal-titulo"></h3>
+            <div class="modal-body" id="modal-corpo"></div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" id="modal-cancelar">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="modal-ok">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Compat v10 -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+    <script src="../auth.js?v=6"></script>
+    <script src="script.js?v=5"></script>
+</body>
+</html>

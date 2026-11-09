@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Casa da Mulher</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script>
+        // Proteção de Sessão
+        const nomeUsuario = sessionStorage.getItem('usuarioNome') || localStorage.getItem('usuarioNome');
+        if (!nomeUsuario) {
+            // window.location.href = 'login.html';
+        }
+    </script>
+</head>
+<body>
+        <header>
+        <div class="logo-area" style="max-width: 1400px; margin: 0 auto; width: 100%;">
+            <img src="../logo-mulher.png" alt="Casa da Mulher Itaquaquecetuba" class="logo-highlight" onerror="this.style.display='none'">
+            <div class="header-titles">
+                <h1>Controle Interno</h1>
+                <p>Portal da Casa da Mulher</p>
+            </div>
+            
+            <nav class="top-nav">
+                <a class='nav-link active' href='/casa-da-mulher/'><i class="ph ph-house"></i> Início</a>
+                <a class='nav-link' href='/casa-da-mulher/gestao_usuarios'><i class="ph ph-users"></i> Acessos</a>
+                <a class='nav-link' href='/casa-da-mulher/matriculas'><i class="ph ph-clipboard-text"></i> Matrículas</a>
+                <a class='nav-link' href='/casa-da-mulher/turmas'><i class="ph ph-chalkboard-teacher"></i> Turmas</a>
+                <a class='nav-link' href='/casa-da-mulher/espera'><i class="ph ph-list-numbers"></i> Espera</a>
+                <div style="margin-left: 1rem; padding-left: 1rem; border-left: 1px solid var(--border); display: flex; align-items: center; gap: 1rem;">
+                    <span style="color: var(--primary); font-weight: 600; font-size: 0.9rem;">
+                        <i class="ph ph-user-circle"></i> <span id="display-user-name">Usuário</span>
+                    </span> <a class='nav-link' href='/#dashboard' style='color: var(--primary-dark); font-weight: 700; background: rgba(0,0,0,0.05); border-radius: 8px; margin-left: 10px;'><i class="ph ph-arrow-left"></i> Voltar ao Portal</a>
+                    
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="hero-section">
+        <h2 class="hero-title">Bem-vindo ao Portal de Controle</h2>
+        <p class="hero-subtitle">Selecione um dos módulos abaixo para gerenciar as atividades da Casa da Mulher de Itaquaquecetuba.</p>
+        
+        <div class="home-cards">
+            <a class='home-card' href='/casa-da-mulher/matriculas'>
+                <i class="ph ph-user-plus"></i>
+                <h3>Gestão de Matrículas</h3>
+                <p>Cadastre alunos, visualize turmas e gerencie as listas de presença e reservas.</p>
+            </a>
+
+            <a class='home-card' href='/casa-da-mulher/turmas'>
+                <i class="ph ph-chalkboard-teacher"></i>
+                <h3>Gestão de Turmas</h3>
+                <p>Crie novas turmas, acompanhe as turmas ativas e gere listas de presença.</p>
+            </a>
+            
+            <a class='home-card' href='/casa-da-mulher/gestao_usuarios' id='card-gestao' style='display: none;'>
+                <i class="ph ph-shield-check"></i>
+                <h3>Gestão de Acessos</h3>
+                <p>Módulo de permissões. Crie, remova ou edite níveis de acesso para a equipe.</p>
+            </a>
+            
+            <a class='home-card' href='/casa-da-mulher/espera'>
+                <i class="ph ph-list-numbers"></i>
+                <h3>Lista de Espera</h3>
+                <p>Cadastre interessados e consulte a fila de espera para novas vagas.</p>
+            </a>
+            
+            <a href="#" class="home-card" onclick="abrirModalCatalogo(event)">
+                <i class="ph ph-books"></i>
+                <h3>Catálogo de Cursos</h3>
+                <p>Consulte todos os eixos e grades disponíveis na nossa unidade.</p>
+            </a>
+            
+            <a class='home-card' href='/casa-da-mulher/relatorios'>
+                <i class="ph ph-chart-line-up"></i>
+                <h3>Relatórios</h3>
+                <p>Visualize métricas de evasão, preenchimento e dados gerais da unidade.</p>
+            </a>
+            
+
+        </div>
+
+    </main>
+
+
+    <!-- Modal Aniversariantes -->
+    <div id="modal-calendario" class="modal-overlay">
+        <div class="modal-content" style="max-width: 900px; width: 95%; padding: 1rem; box-sizing: border-box;">
+            <button type="button" class="close-modal" onclick="fecharModalCalendario()"><i class="ph ph-x"></i></button>
+            
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">
+                <h3 style="font-size: 1.4rem; color: var(--text-main); display: flex; align-items: center; gap: 10px;">
+                    <i class="ph-fill ph-cake" style="color: #f43f5e; font-size: 1.8rem;"></i>
+                    Aniversariantes do Mês
+                </h3>
+                <div style="display: flex; align-items: center; gap: 10px; margin-right: 40px;">
+                    <button onclick="mudarMes(-1)" class="btn-icon" style="background: none; border: 1px solid var(--border); border-radius: 50%; width: 32px; height: 32px; cursor: pointer; color: var(--text-main); display: flex; align-items: center; justify-content: center;"><i class="ph ph-caret-left"></i></button>
+                    <span id="mes-atual-label" style="font-weight: bold; color: var(--text-main); font-size: 1.1rem; min-width: 120px; text-align: center; text-transform: capitalize;">...</span>
+                    <button onclick="mudarMes(1)" class="btn-icon" style="background: none; border: 1px solid var(--border); border-radius: 50%; width: 32px; height: 32px; cursor: pointer; color: var(--text-main); display: flex; align-items: center; justify-content: center;"><i class="ph ph-caret-right"></i></button>
+                </div>
+            </div>
+            
+            <div id="aniversariantes-loader" style="text-align: center; padding: 2rem;">
+                <div class="spinner" style="margin: 0 auto;"></div>
+                <p style="color: var(--text-muted); margin-top: 10px;">Buscando calendário...</p>
+            </div>
+            
+            <div id="calendar-container" style="display: none; flex-direction: column;">
+                    <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; font-weight: bold; color: var(--text-muted); margin-bottom: 10px; font-size: 0.9rem;">
+                        <div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div><div>Qui</div><div>Sex</div><div>Sáb</div>
+                    </div>
+                    <div id="aniversariantes-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; grid-auto-rows: minmax(40px, auto);">
+                        <!-- Preenchido via JS -->
+                    </div>
+                </div>
+        </div>
+    </div>
+
+    <!-- Rodapé com logos institucionais -->
+    
+
+    <script>
+        const nomeParaMostrar = sessionStorage.getItem('usuarioNome') || localStorage.getItem('usuarioNome');
+        const nivelParaMostrar = sessionStorage.getItem('usuarioNivel') || localStorage.getItem('usuarioNivel');
+        
+        document.getElementById('display-user-name').textContent = nomeParaMostrar;
+        
+        const niveisGestao = ['Master', 'Gestor', 'Assistente Técnico'];
+        if (niveisGestao.includes(nivelParaMostrar)) {
+            document.getElementById('card-gestao').style.display = 'flex';
+        }
+        
+        function abrirModalCatalogo(e) {
+            e.preventDefault();
+            document.getElementById('modal-catalogo').classList.add('active');
+        }
+
+        function fecharModalCatalogo() {
+            document.getElementById('modal-catalogo').classList.remove('active');
+        }
+
+        function abrirCatalogo(tipo) {
+            if (tipo === '40h') {
+                window.open('catalogo_40h.pdf', '_blank');
+            } else if (tipo === '20h') {
+                window.open('catalogo_20h.pdf', '_blank');
+            }
+            fecharModalCatalogo();
+        }
+    </script>
+
+    <!-- Modal Catálogo de Cursos -->
+    <div id="modal-catalogo" class="modal-overlay">
+        <div class="modal-content glass-panel" style="max-width: 400px; text-align: center; position: relative;">
+            
+            <button onclick="fecharModalCatalogo()" style="position: absolute; right: 15px; top: 15px; background: var(--bg-hover); color: var(--text-muted); border: none; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#fee2e2'; this.style.color='#ef4444';" onmouseout="this.style.background='var(--bg-hover)'; this.style.color='var(--text-muted)';">
+                <i class="ph ph-x" style="font-size: 1.2rem;"></i>
+            </button>
+
+            <div class="modal-header" style="justify-content: center; border-bottom: none; padding-bottom: 0;">
+                <h2 style="font-size: 1.4rem; color: var(--text-main);">Selecione o Catálogo</h2>
+            </div>
+            
+            <div class="modal-body" style="display: flex; flex-direction: column; gap: 15px; padding: 20px 0;">
+                <p style="color: var(--text-muted); margin-bottom: 5px;">Qual catálogo você deseja visualizar?</p>
+                
+                <button onclick="abrirCatalogo('40h')" class="btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 1.1rem; padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(27,149,198,0.3); transition: 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                    <i class="ph ph-file-pdf" style="font-size: 1.5rem;"></i>
+                    Catálogo 40 Horas
+                </button>
+                
+                <button onclick="abrirCatalogo('20h')" style="display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 1.1rem; padding: 15px; background: white; color: var(--text-main); border: 2px solid #e2e8f0; border-radius: 12px; cursor: pointer; font-weight: 600; transition: 0.2s;" onmouseover="this.style.borderColor='var(--primary)'; this.style.color='var(--primary)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='#e2e8f0'; this.style.color='var(--text-main)'; this.style.transform='translateY(0)'">
+                    <i class="ph ph-file-pdf" style="font-size: 1.5rem;"></i>
+                    Catálogo 20 Horas
+                </button>
+            </div>
+        </div>
+    </div>
+    
+        <!-- Scripts -->
+    <script>
+        const URL_API = "https://script.google.com/macros/s/AKfycbwehsrUQ1_1Za7LvNNuJKep1LUALKD4yRbiK_hvIz0TKwYlo_ZOoCYucCjsgeK81ud5/exec";
+        
+        function abrirModalCalendario(e) {
+            e.preventDefault();
+            document.getElementById('modal-calendario').classList.add('active');
+        }
+        
+        function fecharModalCalendario() {
+            document.getElementById('modal-calendario').classList.remove('active');
+        }
+        
+        // Lógica dos Aniversariantes com Calendário
+        let mesSelecionado = new Date().getMonth() + 1;
+        const anoAtual = new Date().getFullYear();
+        
+        const mesesNomes = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+        
+        function atualizarNomeMes() {
+            document.getElementById('mes-atual-label').innerText = mesesNomes[mesSelecionado - 1];
+        }
+        
+        function mudarMes(delta) {
+            mesSelecionado += delta;
+            if (mesSelecionado > 12) mesSelecionado = 1;
+            if (mesSelecionado < 1) mesSelecionado = 12;
+            
+            atualizarNomeMes();
+            carregarAniversariantes();
+        }
+
+        function renderizarCalendarioVazio() {
+            const grid = document.getElementById('aniversariantes-grid');
+            grid.innerHTML = '';
+            
+            // Descobrir qual dia da semana cai o dia 1 do mesSelecionado
+            // no JS: meses são 0-11
+            const diaPrimeiro = new Date(anoAtual, mesSelecionado - 1, 1);
+            const diaSemanaInicio = diaPrimeiro.getDay(); // 0(Dom) a 6(Sáb)
+            
+            const diasNoMes = new Date(anoAtual, mesSelecionado, 0).getDate();
+            
+            // Preencher espaços vazios antes do dia 1
+            for (let i = 0; i < diaSemanaInicio; i++) {
+                grid.innerHTML += `<div style="background: transparent; border: 1px dashed var(--border); border-radius: 8px; opacity: 0.5;"></div>`;
+            }
+            
+            // Preencher os dias do mês
+            for (let dia = 1; dia <= diasNoMes; dia++) {
+                grid.innerHTML += `
+                    <div id="dia-${dia}" style="background: white; border: 1px solid var(--border); border-radius: 8px; padding: 2px; position: relative; min-height: 50px; display: flex; flex-direction: column; gap: 1px;">
+                        <div style="font-weight: bold; color: var(--text-muted); font-size: 0.75rem; text-align: right;">${dia}</div>
+                        <div class="aniversariantes-do-dia" style="display: flex; flex-direction: column; gap: 4px;"></div>
+                    </div>
+                `;
+            }
+        }
+
+        function carregarAniversariantes() {
+            const loader = document.getElementById('aniversariantes-loader');
+            const container = document.getElementById('calendar-container');
+            
+            loader.style.display = 'block';
+            container.style.display = 'none';
+            
+            fetch(URL_API, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'getAniversariantesMes', mes: mesSelecionado })
+            })
+            .then(r => r.json())
+            .then(res => {
+                loader.style.display = 'none';
+                container.style.display = 'flex';
+                
+                renderizarCalendarioVazio();
+                
+                if(res.success && res.data && res.data.length > 0) {
+                    const vistos = new Set();
+                    const dataUnica = res.data.filter(a => {
+                        const chave = a.cpf || a.nome;
+                        if (vistos.has(chave)) return false;
+                        vistos.add(chave);
+                        return true;
+                    });
+                    
+                    dataUnica.forEach(a => {
+                        const dia = parseInt(a.dia, 10);
+                        const diaElement = document.getElementById(`dia-${dia}`);
+                        if (diaElement) {
+                            const containerDia = diaElement.querySelector('.aniversariantes-do-dia');
+                            diaElement.style.borderColor = '#f43f5e';
+                            diaElement.style.borderWidth = '2px';
+                            diaElement.style.background = '#fff1f2';
+                            
+                            const nameLink = encodeURIComponent(a.cpf || a.nome);
+                            
+                            containerDia.innerHTML += `
+                                <div style="font-size: 0.6rem; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                    <i class="ph-fill ph-cake" style="color: #f43f5e; font-size: 0.7rem;"></i> 
+                                    <a href="#" onclick="abrirPerfilDaHome('${a.nome}', '${a.cpf}', '${a.telefone}'); return false;" style="color: #e11d48; text-decoration: none; font-weight: 600;" title="${a.nome}">${a.nome.split(' ').slice(0, 2).join(' ')}</a>
+                                </div>
+                            `;
+                        }
+                    });
+                }
+            })
+            .catch(e => {
+                loader.innerHTML = `<p style="color: #ef4444;">Erro ao carregar calendário.</p>`;
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            atualizarNomeMes();
+            carregarAniversariantes();
+        });
+
+        // MODAL DOSSIÊ DA HOME
+        let toastTimeout;
+        function mostrarToast(mensagem, isError = false) {
+            let toast = document.getElementById('toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'toast';
+                toast.style.cssText = 'position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); padding: 12px 24px; border-radius: 8px; color: white; font-weight: 600; z-index: 10000; box-shadow: 0 4px 12px rgba(0,0,0,0.15); opacity: 0; transition: opacity 0.3s;';
+                document.body.appendChild(toast);
+            }
+            toast.innerText = mensagem;
+            toast.style.background = isError ? '#ef4444' : '#10b981';
+            toast.style.opacity = '1';
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => { toast.style.opacity = '0'; }, 3000);
+        }
+
+        window.copiarParaAreaDeTransferencia = function(texto, elementoContexto) {
+            navigator.clipboard.writeText(texto).then(() => {
+                if (elementoContexto) {
+                    const spanOriginal = elementoContexto.innerHTML;
+                    elementoContexto.innerHTML = `<i class="ph ph-check-circle" style="color: #10b981;"></i> Copiado!`;
+                    setTimeout(() => { elementoContexto.innerHTML = spanOriginal; }, 1500);
+                }
+            }).catch(() => mostrarToast("Erro ao copiar", true));
+        }
+
+        function fecharModalPerfil() {
+            document.getElementById('modal-perfil').classList.remove('active');
+        }
+
+        function injetarModalPerfilAluno() {
+            if (document.getElementById('modal-perfil')) return;
+            const html = `
+            <div class="modal-overlay" id="modal-perfil">
+                <div class="modal-content" style="max-width: 700px; padding: 2rem;">
+                    <button type="button" class="close-modal" onclick="fecharModalPerfil()"><i class="ph ph-x"></i></button>
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">
+                        <div style="background: var(--primary); color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem;">
+                            <i class="ph ph-user"></i>
+                        </div>
+                        <div>
+                            <h2 id="perfil-nome" style="margin: 0; color: var(--primary);">Nome do Aluno</h2>
+                            <div style="color: var(--text-muted); font-size: 0.9rem; display: flex; gap: 1rem; margin-top: 5px;">
+                                <span id="perfil-cpf"></span>
+                                <span id="perfil-telefone"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; text-align: center;">
+                            <i class="ph ph-books" style="font-size: 2rem; color: #3b82f6;"></i>
+                            <div style="font-size: 0.9rem; color: #64748b; margin-top: 0.5rem;">Cursos Realizados</div>
+                            <div id="perfil-total-cursos" style="font-size: 1.8rem; font-weight: bold; color: #0f172a;">-</div>
+                        </div>
+                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; text-align: center;">
+                            <i class="ph ph-user-minus" style="font-size: 2rem; color: #ef4444;"></i>
+                            <div style="font-size: 0.9rem; color: #64748b; margin-top: 0.5rem;">Evasões</div>
+                            <div id="perfil-total-evasoes" style="font-size: 1.8rem; font-weight: bold; color: #0f172a;">-</div>
+                        </div>
+                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; text-align: center;" id="perfil-card-frequencia">
+                            <i class="ph ph-calendar-check" id="perfil-icone-freq" style="font-size: 2rem; color: #10b981;"></i>
+                            <div style="font-size: 0.9rem; color: #64748b; margin-top: 0.5rem;">Resumo de Frequência</div>
+                            <div id="perfil-status-freq" style="font-size: 1.1rem; font-weight: bold; color: #0f172a; margin-top: 5px;">-</div>
+                            <div id="perfil-media-faltas" style="font-size: 0.8rem; color: #64748b;">-</div>
+                        </div>
+                    </div>
+
+                    <h3 style="margin-bottom: 1rem;"><i class="ph ph-list-bullets"></i> Histórico de Turmas</h3>
+                    <div class="table-container" style="max-height: 250px; overflow-y: auto;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Programa / Curso</th>
+                                    <th>Horário</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="perfil-tabela-cursos">
+                                <!-- preenchido via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="perfil-loading" style="display: none; justify-content: center; padding: 2rem;">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </div>`;
+            document.body.insertAdjacentHTML('beforeend', html);
+        }
+
+        async function abrirPerfilDaHome(nome, cpf, telefoneParam) {
+            injetarModalPerfilAluno();
+            const modal = document.getElementById('modal-perfil');
+            modal.style.zIndex = 10000;
+            modal.classList.add('active');
+            
+            document.getElementById('perfil-nome').innerText = nome;
+            if(cpf && cpf !== 'undefined') {
+                document.getElementById('perfil-cpf').innerHTML = `<span onclick="copiarParaAreaDeTransferencia('${cpf}', this)" style="cursor: pointer;" title="Copiar CPF"><i class="ph ph-identification-card"></i> ${cpf}</span>`;
+            } else {
+                document.getElementById('perfil-cpf').innerHTML = '';
+            }
+            
+            if (telefoneParam && telefoneParam !== 'undefined' && telefoneParam.trim() !== '') {
+                document.getElementById('perfil-telefone').innerHTML = `<span onclick="copiarParaAreaDeTransferencia('${telefoneParam}', this)" style="cursor: pointer;" title="Copiar Telefone"><i class="ph ph-phone"></i> ${telefoneParam}</span>`;
+            } else {
+                document.getElementById('perfil-telefone').innerHTML = `<span style="color: var(--text-muted);"><i class="ph ph-phone"></i> Não informado</span>`;
+            }
+            
+            document.getElementById('perfil-total-cursos').innerText = '-';
+            document.getElementById('perfil-total-evasoes').innerText = '-';
+            document.getElementById('perfil-status-freq').innerText = '-';
+            document.getElementById('perfil-media-faltas').innerText = '-';
+            document.getElementById('perfil-tabela-cursos').innerHTML = '';
+            document.getElementById('perfil-loading').style.display = 'flex';
+            
+            if(!cpf || cpf === 'undefined') {
+                document.getElementById('perfil-loading').style.display = 'none';
+                document.getElementById('perfil-tabela-cursos').innerHTML = '<tr><td colspan="3" style="text-align:center;">Não foi possível carregar os cursos (CPF ausente).</td></tr>';
+                return;
+            }
+
+            try {
+                const res = await fetch(URL_API, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'getStudentProfile', cpf: cpf })
+                });
+                const result = await res.json();
+                
+                if (result.success) {
+                    const data = result.data;
+                    document.getElementById('perfil-total-cursos').innerText = data.totalCursos;
+                    document.getElementById('perfil-total-evasoes').innerText = data.totalEvasoes;
+                    
+                    let freqStatus = "Nunca Falta";
+                    let freqColor = "#10b981"; 
+                    let mediaText = `Média: ${data.mediaFaltas} faltas / curso`;
+                    
+                    if (!data.temDadosPresenca) {
+                        freqStatus = "Sem dados";
+                        freqColor = "#94a3b8";
+                        mediaText = "Faltas não computadas";
+                    } else if (data.mediaFaltas >= 1 && data.mediaFaltas <= 1.5) {
+                        freqStatus = "Falta Ocasionalmente";
+                        freqColor = "#f59e0b";
+                    } else if (data.mediaFaltas > 1.5) {
+                        freqStatus = "Falta Bastante";
+                        freqColor = "#ef4444";
+                    }
+                    
+                    document.getElementById('perfil-status-freq').innerText = freqStatus;
+                    document.getElementById('perfil-status-freq').style.color = freqColor;
+                    document.getElementById('perfil-icone-freq').style.color = freqColor;
+                    document.getElementById('perfil-media-faltas').innerText = mediaText;
+                    
+                    const tbody = document.getElementById('perfil-tabela-cursos');
+                    tbody.innerHTML = '';
+                    if (data.cursos.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: var(--text-muted);">Nenhum curso encontrado.</td></tr>';
+                    } else {
+                        data.cursos.forEach(c => {
+                            let sColor = '#0f172a';
+                            let sBg = '#f1f5f9';
+                            let st = c.status || '';
+                            if (st.toLowerCase().includes('conclu')) { sColor = '#10b981'; sBg = '#d1fae5'; }
+                            else if (st.toLowerCase().includes('evadi')) { sColor = '#ef4444'; sBg = '#fee2e2'; }
+                            else if (st.toLowerCase().includes('curso')) { sColor = '#3b82f6'; sBg = '#dbeafe'; }
+                            
+                            tbody.innerHTML += `
+                                <tr>
+                                    <td colspan="2">
+                                        <div style="font-weight: 600; color: #1e293b;">${c.turmaExibicao || c.turma || '-'}</div>
+                                    </td>
+                                    <td><span style="background: ${sBg}; color: ${sColor}; padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">${st}</span></td>
+                                </tr>
+                            `;
+                        });
+                    }
+                } else {
+                    document.getElementById('perfil-tabela-cursos').innerHTML = `<tr><td colspan="3" style="text-align:center; color: #ef4444;">Erro: ${result.message}</td></tr>`;
+                }
+            } catch (err) {
+                console.error(err);
+                document.getElementById('perfil-tabela-cursos').innerHTML = `<tr><td colspan="3" style="text-align:center; color: #ef4444;">Erro interno: ${err.message}</td></tr>`;
+            } finally {
+                document.getElementById('perfil-loading').style.display = 'none';
+            }
+        }
+
+    </script>
+</body>
+
+</html>
+
+
+
+
+
+
+
+
